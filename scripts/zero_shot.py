@@ -1,16 +1,61 @@
 
 
-from ucpa.utils import parse_args
+from ucpa.utils import parse_args, read_config
+from ucpa.data import PromptTemplate
+from tqdm import tqdm
 
+
+dataset_config = {
+
+    "trec": (PromptTemplate(
+        preface="Classify the questions based on whether their answer type is a Number, Location, Person, Description, Entity, or Abbreviation.\n\n",
+        query_prefix="Question: ",
+        label_prefix="Answer Type: ",
+        query_label_separator="\n",
+        shot_separator="\n\n"
+    ), {0: 'Number', 1: 'Location', 2: 'Person', 3: 'Description', 4: 'Entity', 5: 'Abbreviation'}),
+    
+    "sst2": (PromptTemplate(
+        preface="",
+        query_prefix="Review: ",
+        label_prefix="Sentiment: ",
+        query_label_separator="\n",
+        shot_separator="\n\n"
+    ), {0: 'Negative', 1: 'Positive'}),
+    
+    "agnews": (PromptTemplate(
+        preface="Classify the news articles into the categories of World, Sports, Business, and Technology.\n\n",
+        query_prefix="Article: ",
+        label_prefix="Answer: ",
+        query_label_separator="\n",
+        shot_separator="\n\n"
+    ), {0: 'World', 1: 'Sports', 2: 'Business', 3: 'Technology'}),
+    
+    "dbpedia": (PromptTemplate(
+        preface="Classify the documents based on whether they are about a Company, School, Artist, Athlete, Politician, Transportation, Building, Nature, Village, Animal, Plant, Album, Film, or Book.\n\n",
+        query_prefix="Article: ",
+        label_prefix="Answer: ",
+        query_label_separator="\n",
+        shot_separator="\n\n"
+    ), {0: 'Company', 1: 'School', 2: 'Artist', 3: 'Athlete', 4: 'Politician', 5: 'Transportation', 6: 'Building', 7: 'Nature', 8: 'Village', 9: 'Animal', 10: 'Plant', 11: 'Album', 12: 'Film', 13: 'Book'}),
+
+}
 
 
 def main():
 
-    # Parse command line arguments
+    # Parse command line arguments and read config file
     args = parse_args()
-    print(args.data_dir)
-    print(args.results_dir)
-    print(args.config_file)
+    config = read_config(args.config_file)
+
+    # Iterate over datasets
+    dataset_bar = tqdm(config["datasets"], desc="Dataset")
+    for dataset in dataset_bar:
+
+        dataset_bar.set_description(f"Dataset: {dataset}")
+
+
+
 
 
 if __name__ == "__main__":

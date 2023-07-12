@@ -18,4 +18,4 @@ mkdir -p $RESULTS_DIR
 python $SCRIPTS_DIR/$EXPERIMENT_NAME.py \
     --data-dir $DATA_DIR \
     --results-dir $RESULTS_DIR \
-    --config-file $CONFIGS_DIR/$EXPERIMENT_NAME/$CONFIG_FILE
+    --config-file $CONFIGS_DIR/$EXPERIMENT_NAME/$CONFIG_FILE.json

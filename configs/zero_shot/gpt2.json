@@ -1,0 +1,6 @@
+{
+    "random_state": 2349876,
+    "n_seeds": 10,
+    "model": "gpt2",
+    "datasets": ["trec", "sst2", "agnews", "dbpedia"]
+}
