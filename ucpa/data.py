@@ -156,14 +156,19 @@ class ClassificationDataset(Dataset):
 
     def set_shots(self, sentences_shots=None, labels_shots=None, n_shots=None, random_state=None):
         """ Set which shots to use for the prompt and create the prompt constructor function. """
+        
         if sentences_shots is not None and labels_shots is not None:
             if n_shots is not None or random_state is not None:
                 raise ValueError("Cannot specify both sentence and label shots and n_shots or random_state.")
+            self.sentences_shots = sentences_shots
+            self.labels_shots = labels_shots
             self.construct_prompt = lambda query: self.template.construct_prompt(query,sentences_shots,labels_shots)
         elif (sentences_shots is None and labels_shots is not None) or (sentences_shots is not None and labels_shots is None):
             raise ValueError("Sentence shots cannot be None if label shots are not None and viceversa.")
         elif n_shots is not None and random_state is not None:
-            self.construct_prompt = lambda query: self.template.construct_prompt(query,*self._get_random_shots(n_shots,random_state))
+            self.sentences_shots, labels_idx = self._get_random_shots(n_shots,random_state)
+            self.labels_shots = [self.label_dict[idx] for idx in labels_idx]
+            self.construct_prompt = lambda query: self.template.construct_prompt(query,self.sentences_shots,self.labels_shots)
         elif n_shots is None:
             raise ValueError("Must specify either sentence and label shots or n_shots.")
         
@@ -206,3 +211,5 @@ class ClassificationDataset(Dataset):
             return self.construct_prompt(self._data["test_sentences"][idx]), self._data["test_labels"][idx]
         else:
             raise ValueError("Split must be either 'train' or 'test'.")
+        
+ 

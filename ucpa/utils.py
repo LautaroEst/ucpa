@@ -2,6 +2,7 @@
 import argparse
 import json
 import numpy as np
+import glob
 
 
 
@@ -22,7 +23,14 @@ def parse_args():
         "--config-file", 
         type=str
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--input-files",
+        type=str,
+        default=""
+    )
+    args = parser.parse_args()
+    args.input_files = glob.glob(args.input_files)
+    return args
 
 
 def read_config(config_file):

@@ -1,0 +1,4 @@
+{
+    "method": "affine",
+    "metric": "cross-entropy"
+}
