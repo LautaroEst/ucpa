@@ -12,19 +12,25 @@ def parse_args():
     parser.add_argument(
         "--data-dir", 
         type=str, 
-        default="./data"
+        default=""
     )
     parser.add_argument(
         "--results-dir", 
         type=str, 
-        default="./results"
+        default=""
     )
     parser.add_argument(
         "--config-file", 
-        type=str
+        type=str,
+        default=""
     )
     parser.add_argument(
         "--input-files",
+        type=str,
+        default=""
+    )
+    parser.add_argument(
+        "--checkpoints-dir",
         type=str,
         default=""
     )
@@ -38,6 +44,11 @@ def read_config(config_file):
     with open(config_file, "r") as f:
         config = json.load(f)
     return config
+
+def save_config(config, config_file):
+    """ Save config file."""
+    with open(config_file, "w") as f:
+        json.dump(config, f, indent=4)
 
 
 def seeds_generator(seed,n_seeds=10):

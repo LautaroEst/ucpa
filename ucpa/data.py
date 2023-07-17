@@ -1,7 +1,6 @@
 
 import numpy as np
 import pandas as pd
-from torch.utils.data import Dataset
 
 class PromptTemplate:
     """ Prompt template for a few-shot classification task."""
@@ -135,16 +134,19 @@ def load_dbpedia(data_dir):
 
 
 
-class ClassificationDataset(Dataset):
+class ClassificationDataset:
     """ Few-shot classification dataset."""
 
-    def __init__(self,dataset_name,split="train",data_dir="",template=None,label_dict=None):
+    short2name = {
+        "trec": "TREC",
+        "sst2": "SST-2",
+        "agnews": "AGNews",
+        "dbpedia": "DBPedia"
+    }
+
+    def __init__(self,dataset_name,data_dir="",n_shots=0,num_train_samples=None,num_test_samples=None,random_state=None):
         """ Initialize dataset and load data. """
         self.dataset_name = dataset_name
-        self.template = template
-        self.label_dict = label_dict
-        self.inv_label_dict = {v: k for k, v in label_dict.items()}
-        self.split = split
         if dataset_name == "trec":
             self._data = load_trec(data_dir)
         elif dataset_name == "sst2":
@@ -153,33 +155,39 @@ class ClassificationDataset(Dataset):
             self._data = load_agnews(data_dir)
         elif dataset_name == "dbpedia":
             self._data = load_dbpedia(data_dir)
+        else:
+            raise ValueError(f"Unknown dataset {dataset_name}.")
+        self.n_shots = n_shots
+        self.random_state = random_state
+        self._rs = np.random.RandomState(random_state)
+        self.sentences_shots, labels_idx = self._get_random_shots(n_shots)
+        self.labels_shots = [self.label_dict[idx] for idx in labels_idx] if labels_idx is not None else None
+        self._shuffle_and_subsample(num_train_samples,num_test_samples)
 
-    def set_shots(self, sentences_shots=None, labels_shots=None, n_shots=None, random_state=None):
-        """ Set which shots to use for the prompt and create the prompt constructor function. """
+
+    def _shuffle_and_subsample(self,num_train_samples,num_test_samples):
+        """ Shuffle and subsample data. """
+        if num_train_samples is not None:
+            train_idx = self._rs.permutation(len(self._data["train_sentences"]))[:num_train_samples]
+            self._data["train_sentences"] = [self._data["train_sentences"][idx] for idx in train_idx]
+            self._data["train_labels"] = [self._data["train_labels"][idx] for idx in train_idx]
+        if num_test_samples is not None:
+            test_idx = self._rs.permutation(len(self._data["test_sentences"]))[:num_test_samples]
+            self._data["test_sentences"] = [self._data["test_sentences"][idx] for idx in test_idx]
+            self._data["test_labels"] = [self._data["test_labels"][idx] for idx in test_idx]
+        if self.sentences_shots is not None and self.labels_shots is not None:
+            shots_idx = self._rs.permutation(len(self.sentences_shots))
+            self.sentences_shots = [self.sentences_shots[idx] for idx in shots_idx]
+            self.labels_shots = [self.labels_shots[idx] for idx in shots_idx]
         
-        if sentences_shots is not None and labels_shots is not None:
-            if n_shots is not None or random_state is not None:
-                raise ValueError("Cannot specify both sentence and label shots and n_shots or random_state.")
-            self.sentences_shots = sentences_shots
-            self.labels_shots = labels_shots
-            self.construct_prompt = lambda query: self.template.construct_prompt(query,sentences_shots,labels_shots)
-        elif (sentences_shots is None and labels_shots is not None) or (sentences_shots is not None and labels_shots is None):
-            raise ValueError("Sentence shots cannot be None if label shots are not None and viceversa.")
-        elif n_shots is not None and random_state is not None:
-            self.sentences_shots, labels_idx = self._get_random_shots(n_shots,random_state)
-            self.labels_shots = [self.label_dict[idx] for idx in labels_idx]
-            self.construct_prompt = lambda query: self.template.construct_prompt(query,self.sentences_shots,self.labels_shots)
-        elif n_shots is None:
-            raise ValueError("Must specify either sentence and label shots or n_shots.")
         
-    def _get_random_shots(self,n_shots,random_state=None):
+    def _get_random_shots(self,n_shots):
 
         if n_shots == 0:
-            return [], []
+            return None, None
         
         # Remove the prompt shots from the training set
-        rs = np.random.RandomState(random_state)
-        train_shots_idx = rs.permutation(len(self._data["train_sentences"]))[:n_shots]
+        train_shots_idx = self._rs.permutation(len(self._data["train_sentences"]))[:n_shots]
         all_train_sentences = self._data['train_sentences']
         all_train_labels = self._data['train_labels']
         new_train_sentences = []
@@ -194,22 +202,34 @@ class ClassificationDataset(Dataset):
         labels_shots = [all_train_labels[idx] for idx in train_shots_idx]
         return sentences_shots, labels_shots
         
+    def __getitem__(self, split):
+        """ Return split of the dataset. """
+        if split in ["train", "test"]:
+            return {"sentences": self._data[f"{split}_sentences"], "labels": self._data[f"{split}_labels"]}
+        elif split == "shots":
+            return {"sentences": self.sentences_shots, "labels": self.labels_shots}
+        else:
+            raise ValueError("Split must be either 'train' or 'test'.")
+        
+
+class BatchLoader:
+
+    def __init__(self, dataset, batch_size):
+        self.dataset = dataset
+        self.batch_size = batch_size
+
+    def __iter__(self):
+        return iter(self._get_batches())
+    
+    def _get_batches(self):
+        sample_key = next(iter(self.dataset))
+        num_batches = int(np.ceil(len(self.dataset[sample_key]) / self.batch_size))
+        for idx in range(num_batches):
+            batch = {}
+            for key in self.dataset:
+                batch[key] = self.dataset[key][idx * self.batch_size : (idx + 1) * self.batch_size]
+            yield batch
+
     def __len__(self):
-        """ Return number of examples in dataset. """
-        if self.split == "train":
-            return len(self._data["train_sentences"])
-        elif self.split == "test":
-            return len(self._data["test_sentences"])
-        else:
-            raise ValueError("Split must be either 'train' or 'test'.")
-        
-    def __getitem__(self, idx):
-        """ Return example at index idx. """
-        if self.split == "train":
-            return self.construct_prompt(self._data["train_sentences"][idx]), self._data["train_labels"][idx]
-        elif self.split == "test":
-            return self.construct_prompt(self._data["test_sentences"][idx]), self._data["test_labels"][idx]
-        else:
-            raise ValueError("Split must be either 'train' or 'test'.")
-        
+        return int(np.ceil(len(self.dataset) / self.batch_size))
  
