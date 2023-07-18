@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from ucpa.utils import parse_args, read_config, save_config
 from ucpa.data import PromptTemplate, ClassificationDataset, BatchLoader
-from ucpa.models.base import load_base_model, FewShotClassificationLanguageModel
+from ucpa.models import load_base_model, FewShotLanguageModelClassifier
 from tqdm import tqdm
 from copy import deepcopy
 
@@ -64,7 +64,7 @@ def main():
 
     # Instantiate base model
     print("Loading base model...")
-    model, tokenizer = load_base_model(config["model"],checkpoints_dir=args.checkpoints_dir)
+    base_model, tokenizer = load_base_model(config["model"],checkpoints_dir=args.checkpoints_dir)
 
     # Iterate over datasets
     dataset_bar = tqdm(config["datasets"], desc="Dataset")
@@ -83,26 +83,28 @@ def main():
             num_test_samples=config["num_test_samples"],
             random_state=config["random_state"]
         )
-        classification_model = FewShotClassificationLanguageModel(
-            model=model,
-            tokenizer=tokenizer,
-            template=template,
+        model = FewShotLanguageModelClassifier(
+            base_model=base_model,
+            tokenizer=tokenizer, 
             labels_dict=labels_dict,
+            template=template, 
             sentences_shots=dataset["shots"]["sentences"],
             labels_shots=dataset["shots"]["labels"]
         )
         result = run(
-            classification_model,
+            model,
             dataset,
             batch_size = config["batch_size"]
         )
 
         # Save results
         for key in result:
-            np.save(os.path.join(args.results_dir,dataset_name,f"{key}.npy"),result[key])
+            dir_name = os.path.join(args.results_dir,dataset_name)
+            os.makedirs(dir_name,exist_ok=True)
+            np.save(os.path.join(dir_name,f"{key}.npy"),result[key])
 
 def sort_split_by_sentence_length(data):
-    sorted_idx = np.argsort([len(sentence) for sentence in data["sentences"]])
+    sorted_idx = np.argsort([len(sentence) for sentence in data["sentences"]])[::-1]
     sorted_data = {}
     for key in data:
         sorted_data[key] = [data[key][idx] for idx in sorted_idx]
@@ -111,7 +113,7 @@ def sort_split_by_sentence_length(data):
 
 
 def get_split_probs(
-    clf_model, 
+    model, 
     dataset,
     split,
     batch_size = 32,
@@ -124,7 +126,8 @@ def get_split_probs(
     train_bar = tqdm(loader, desc=split, total=len(loader))
     for batch in train_bar:
         with torch.no_grad():
-            logprobs = clf_model(batch["sentences"]).cpu().numpy()
+            _, logits = model(batch["sentences"])
+            logprobs = torch.log_softmax(logits,dim=-1).cpu().numpy()
         all_logprobs.append(logprobs)
         all_labels.append(batch["labels"])
     all_logprobs = np.concatenate(all_logprobs,axis=0)
@@ -132,15 +135,15 @@ def get_split_probs(
     return all_logprobs, all_labels
 
 def run(
-    clf_model, 
+    model, 
     dataset,
     batch_size = 32,
 ):
     # Train logprobs:
-    train_logprobs, train_labels = get_split_probs(clf_model,dataset,"train",batch_size)
+    train_logprobs, train_labels = get_split_probs(model,dataset,"train",batch_size)
     
     # Test logprobs:
-    test_logprobs, test_labels = get_split_probs(clf_model,dataset,"test",batch_size)
+    test_logprobs, test_labels = get_split_probs(model,dataset,"test",batch_size)
 
     results = {
         "train.logprobs": train_logprobs,

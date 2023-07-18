@@ -74,20 +74,20 @@ class LabelsDecoder(nn.Module):
 
     def forward(self, encoder_output):
         batch_size = encoder_output["input_ids"].shape[0]
-        labels_logprobs = []
+        labels_logits = []
         for idx in range(len(self.encoded_labels)):
             encoded_label = self.encoded_labels[idx]
             encoded_label = {k: v.repeat(batch_size,1) for k, v in encoded_label.items()}
             logits = self._forward(encoder_output, encoded_label)
             logprobs = torch.log_softmax(logits,dim=-1)
-            gathered_logprobs = torch.gather(
+            gathered_logits = torch.gather(
                 logprobs,
                 dim=-1,
                 index=encoded_label["input_ids"].unsqueeze(-1)
             ).squeeze(-1).sum(dim=1, keepdim=True)
-            labels_logprobs.append(gathered_logprobs[:, 0])
-        labels_logprobs = torch.stack(labels_logprobs,dim=1)
-        return labels_logprobs
+            labels_logits.append(gathered_logits[:, 0])
+        labels_logits = torch.stack(labels_logits,dim=1)
+        return labels_logits
 
 
 class PromptEncoder(nn.Module):
@@ -165,40 +165,6 @@ class FewShotLanguageModelClassifier(nn.Module):
 
     def forward(self, batch_queries):
         encoder_output = self.prompt_encoder(batch_queries)
-        labels_logprobs = self.labels_decoder(encoder_output)
-        return labels_logprobs
+        labels_logits = self.labels_decoder(encoder_output)
+        return encoder_output, labels_logits
         
-
-    
-    
-    # def _encoder_decoder_forward(self,queries_batch):
-    #     raise NotImplementedError(f"Architecture type encoder_decoder not implemented.")
-
-    # def _decoder_only_forward(self,encoded_prompts):
-    #     batch_size = encoded_prompts["input_ids"].shape[0]
-    #     ## TODO: review this part ##
-    #     encoded_prompts = {k: v.to(self.model.device) for k, v in encoded_prompts.items()}
-    #     prompt_output = self.model(**encoded_prompts, use_cache=True, output_attentions=False, output_hidden_states=False)
-    #     ############################
-    #     last_token_logprobs = torch.log_softmax(prompt_output.logits[:,-1,:], dim=-1)
-    #     sequence_lens = encoded_prompts["attention_mask"].sum(dim=-1,keepdim=True).cpu()
-    #     labels_logprobs = []
-    #     for idx in range(len(self.labels_dict)):
-    #         label = self.labels_dict[idx]
-    #         encoded_label = self.tokenizer([f" {label}" for _ in range(batch_size)], return_tensors="pt", padding=True)
-    #         label_len = encoded_label["attention_mask"].shape[1]
-    #         encoded_label["position_ids"] = torch.arange(label_len).repeat(batch_size,1) + sequence_lens
-    #         encoded_label["attention_mask"] = torch.cat((encoded_prompts["attention_mask"].cpu(),torch.ones((batch_size,label_len),dtype=torch.long)),dim=1)
-    #         encoded_label = {k: v.to(self.model.device) for k, v in encoded_label.items()}
-    #         logprobs = torch.log_softmax(self.model(**encoded_label, past_key_values=prompt_output.past_key_values, output_attentions=False, output_hidden_states=False).logits,dim=-1)
-    #         gathered_logprobs = torch.gather(
-    #             logprobs[:,:-1,:],
-    #             dim=-1,
-    #             index=encoded_label["input_ids"][:, 1:].unsqueeze(-1)
-    #         ).squeeze(-1).sum(dim=1,keepdim=True) + torch.gather(last_token_logprobs,dim=-1,index=encoded_label["input_ids"][:,-1].unsqueeze(-1))
-    #         labels_logprobs.append(gathered_logprobs[:, 0])
-    #     labels_logprobs = torch.stack(labels_logprobs,dim=1)
-    #     return labels_logprobs
-
-
-

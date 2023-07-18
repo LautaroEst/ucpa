@@ -218,19 +218,19 @@ class BatchLoader:
     def __init__(self, dataset, batch_size):
         self.dataset = dataset
         self.batch_size = batch_size
+        sample_key = next(iter(self.dataset))
+        self.num_batches = int(np.ceil(len(self.dataset[sample_key]) / self.batch_size))
 
     def __iter__(self):
         return iter(self._get_batches())
     
     def _get_batches(self):
-        sample_key = next(iter(self.dataset))
-        num_batches = int(np.ceil(len(self.dataset[sample_key]) / self.batch_size))
-        for idx in range(num_batches):
+        for idx in range(self.num_batches):
             batch = {}
             for key in self.dataset:
                 batch[key] = self.dataset[key][idx * self.batch_size : (idx + 1) * self.batch_size]
             yield batch
 
     def __len__(self):
-        return int(np.ceil(len(self.dataset) / self.batch_size))
+        return self.num_batches
  
