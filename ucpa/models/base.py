@@ -11,7 +11,7 @@ SUPPORTED_MODELS = {
         "gpt2",
         # "gpt2-medium",
         # "gpt2-large",
-        # "gpt2-xl"
+        "gpt2-xl"
     ],
     "encoder_decoder": [
         "t5-small",
@@ -41,8 +41,13 @@ class LabelsDecoder(nn.Module):
         self.tokenizer = tokenizer
         self.labels_dict = labels_dict
         self.encoded_labels = self._encode_labels()
-        self._forward = self._encoder_decoder_forward if self.base_model.config.is_encoder_decoder else self._decoder_only_forward
-
+        if self.base_model.name_or_path in SUPPORTED_MODELS["decoder_only"]:
+            self._forward = self._decoder_only_forward
+        elif self.base_model.name_or_path in SUPPORTED_MODELS["encoder_decoder"]:
+            self._forward = self._encoder_decoder_forward
+        else:
+            raise ValueError(f"Architecture type of {self.base_model.name_or_path} model not supported.")
+        
     def _encode_labels(self):
         return {idx: self.tokenizer([f" {label}"], return_tensors="pt", padding=True) for idx, label in self.labels_dict.items()}
 
@@ -69,6 +74,7 @@ class LabelsDecoder(nn.Module):
 
     def forward(self, encoder_output):
         batch_size = encoder_output["input_ids"].shape[0]
+        labels_logprobs = []
         for idx in range(len(self.encoded_labels)):
             encoded_label = self.encoded_labels[idx]
             encoded_label = {k: v.repeat(batch_size,1) for k, v in encoded_label.items()}
@@ -100,11 +106,16 @@ class PromptEncoder(nn.Module):
         self.template = template
         self.sentences_shots = sentences_shots
         self.labels_shots = labels_shots
-        self._forward = self._encoder_decoder_forward if self.base_model.config.is_encoder_decoder else self._decoder_only_forward
+        if self.base_model.name_or_path in SUPPORTED_MODELS["decoder_only"]:
+            self._forward = self._decoder_only_forward
+        elif self.base_model.name_or_path in SUPPORTED_MODELS["encoder_decoder"]:
+            self._forward = self._encoder_decoder_forward
+        else:
+            raise ValueError(f"Architecture type of {self.base_model.name_or_path} model not supported.")
 
     def _decoder_only_forward(self, encoded_prompts):
         position_ids = self.create_position_ids(encoded_prompts["attention_mask"])
-        prompt_output = self.model(
+        prompt_output = self.base_model(
             input_ids=encoded_prompts["input_ids"],
             attention_mask=encoded_prompts["attention_mask"],
             position_ids=position_ids,
@@ -150,7 +161,7 @@ class FewShotLanguageModelClassifier(nn.Module):
     ):
         super().__init__()
         self.prompt_encoder = PromptEncoder(base_model, tokenizer, template, sentences_shots, labels_shots)
-        self.decoder = LabelsDecoder(base_model, tokenizer, labels_dict)
+        self.labels_decoder = LabelsDecoder(base_model, tokenizer, labels_dict)
 
     def forward(self, batch_queries):
         encoder_output = self.prompt_encoder(batch_queries)

@@ -5,6 +5,7 @@ CHECKPOINT_DIR=$(pwd)/checkpoints
 SCRIPTS_DIR=$(pwd)/scripts
 
 # mkdir -p $CHECKPOINT_DIR
+rm -f $CHECKPOINT_DIR
 ln -s /mnt/extra/lautaro/checkpoints $CHECKPOINT_DIR
 
 python $SCRIPTS_DIR/download_checkpoints.py \

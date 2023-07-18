@@ -5,10 +5,11 @@ import pandas as pd
 class PromptTemplate:
     """ Prompt template for a few-shot classification task."""
 
-    def __init__(self,preface,query_prefix,label_prefix,query_label_separator="\n",shot_separator="\n\n"):
+    def __init__(self,preface,query_prefix,label_prefix,prefix_sample_separator=" ",query_label_separator="\n",shot_separator="\n\n"):
         self.preface = preface
         self.query_prefix = query_prefix
         self.label_prefix = label_prefix
+        self.prefix_sample_separator = prefix_sample_separator
         self.query_label_separator = query_label_separator
         self.shot_separator = shot_separator
 
@@ -18,10 +19,10 @@ class PromptTemplate:
         elif sentences_shots is not None and labels_shots is not None:
             if len(sentences_shots) != len(labels_shots):
                 raise ValueError("Sentence and label shots must be the same length.")
-            shots_str = self.shot_separator.join(f"{self.query_prefix}{s}{self.query_label_separator}{self.label_prefix}{l}" for s, l in zip(sentences_shots, labels_shots))
+            shots_str = self.shot_separator.join(f"{self.query_prefix}{self.prefix_sample_separator}{s}{self.query_label_separator}{self.label_prefix}{self.prefix_sample_separator}{l}" for s, l in zip(sentences_shots, labels_shots))
         else:
             raise ValueError("Sentence and label shots must either both be None or both be lists of strings.")
-        prompt = f"{self.preface}{shots_str}{self.query_prefix}{query}{self.query_label_separator}{self.label_prefix}"
+        prompt = f"{self.preface}{shots_str}{self.query_prefix}{self.prefix_sample_separator}{query}{self.query_label_separator}{self.label_prefix}"
         return prompt
             
         
