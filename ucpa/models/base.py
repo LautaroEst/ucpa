@@ -59,10 +59,17 @@ class LabelsDecoder(nn.Module):
         logits = self.base_model(
             input_ids=decoder_input["input_ids"],
             attention_mask=torch.cat(
-                (encoder_output["attention_mask"],torch.ones((batch_size,label_len),dtype=torch.long)),
+                (
+                    encoder_output["attention_mask"],
+                    torch.ones(
+                        (batch_size, label_len),
+                        dtype=torch.long,
+                        device=encoder_output["attention_mask"].device
+                    )
+                ),
                 dim=1
             ),
-            position_ids=torch.arange(label_len).repeat(batch_size,1) + sequence_lens,
+            position_ids=torch.arange(label_len, device=sequence_lens.device).repeat(batch_size,1) + sequence_lens,
             past_key_values=encoder_output["past_key_values"],
             output_attentions=False,
             output_hidden_states=False
@@ -103,7 +110,7 @@ class LabelsDecoder(nn.Module):
         labels_logits = []
         for idx in range(len(self.encoded_labels)):
             encoded_label = self.encoded_labels[idx]
-            encoded_label = {k: v.repeat(batch_size,1) for k, v in encoded_label.items()}
+            encoded_label = {k: v.repeat(batch_size,1).to(device=encoder_output["input_ids"].device) for k, v in encoded_label.items()}
             logits = self._forward(encoder_output, encoded_label)
             logprobs = torch.log_softmax(logits,dim=-1)
             gathered_logits = torch.gather(
@@ -121,17 +128,11 @@ class PromptEncoder(nn.Module):
     def __init__(
         self, 
         base_model: PreTrainedModel,
-        tokenizer: PreTrainedTokenizer, 
-        template: PromptTemplate, 
-        sentences_shots: Optional[List[str]] = None,
-        labels_shots: Optional[List[str]] = None
+        tokenizer: PreTrainedTokenizer
     ):
         super().__init__()
         self.base_model = base_model
         self.tokenizer = tokenizer
-        self.template = template
-        self.sentences_shots = sentences_shots
-        self.labels_shots = labels_shots
         if self.base_model.name_or_path in SUPPORTED_MODELS["decoder_only"]:
             self._forward = self._decoder_only_forward
         elif self.base_model.name_or_path in SUPPORTED_MODELS["encoder_decoder"]:
@@ -139,35 +140,36 @@ class PromptEncoder(nn.Module):
         else:
             raise ValueError(f"Architecture type of {self.base_model.name_or_path} model not supported.")
 
-    def _decoder_only_forward(self, encoded_prompts):
-        position_ids = self.create_position_ids(encoded_prompts["attention_mask"])
+    def _decoder_only_forward(self, encoded_prompts_batch):
+        position_ids = self.create_position_ids(encoded_prompts_batch["attention_mask"])
         prompt_output = self.base_model(
-            input_ids=encoded_prompts["input_ids"],
-            attention_mask=encoded_prompts["attention_mask"],
+            input_ids=encoded_prompts_batch["input_ids"],
+            attention_mask=encoded_prompts_batch["attention_mask"],
             position_ids=position_ids,
             use_cache=True, 
             output_attentions=False, 
             output_hidden_states=False
         )
         encoder_output = {
-            "input_ids": encoded_prompts["input_ids"],
-            "attention_mask": encoded_prompts["attention_mask"],
+            "input_ids": encoded_prompts_batch["input_ids"],
+            "attention_mask": encoded_prompts_batch["attention_mask"],
             "past_key_values": prompt_output.past_key_values,
             "logits": prompt_output.logits
         }
         return encoder_output
     
-    def _encoder_decoder_forward(self, encoded_prompt):
-        fake_encoded_decoder_input = self.tokenizer([""] * encoded_prompt["input_ids"].shape[0], padding=True, return_tensors="pt")
+    def _encoder_decoder_forward(self, encoded_prompts_batch):
+        fake_encoded_decoder_input = self.tokenizer([""] * encoded_prompts_batch["input_ids"].shape[0], padding=True, return_tensors="pt")
+        fake_encoded_decoder_input = {k: v.to(device=encoded_prompts_batch["input_ids"].device) for k, v in fake_encoded_decoder_input.items()}
         out = self.base_model(
-            input_ids=encoded_prompt["input_ids"],
-            attention_mask=encoded_prompt["attention_mask"],
+            input_ids=encoded_prompts_batch["input_ids"],
+            attention_mask=encoded_prompts_batch["attention_mask"],
             decoder_input_ids=fake_encoded_decoder_input["input_ids"],
             decoder_attention_mask=fake_encoded_decoder_input["attention_mask"],
         )
         encoder_output = {
-            "input_ids": encoded_prompt["input_ids"],
-            "attention_mask": encoded_prompt["attention_mask"],
+            "input_ids": encoded_prompts_batch["input_ids"],
+            "attention_mask": encoded_prompts_batch["attention_mask"],
             "encoder_last_hidden_state": out.encoder_last_hidden_state,
             "encoder_hidden_states": out.encoder_hidden_states,
             "encoder_attentions": out.encoder_attentions
@@ -175,10 +177,8 @@ class PromptEncoder(nn.Module):
         return encoder_output
 
 
-    def forward(self, queries_batch):
-        prompts_batch = [self.template.construct_prompt(query,sentences_shots=self.sentences_shots,labels_shots=self.labels_shots) for query in queries_batch]
-        encoded_prompts = self.tokenizer(prompts_batch, return_tensors="pt", padding=True)
-        encoder_output = self._forward(encoded_prompts)
+    def forward(self, encoded_prompts_batch):
+        encoder_output = self._forward(encoded_prompts_batch)
         return encoder_output
 
     @staticmethod
@@ -188,7 +188,6 @@ class PromptEncoder(nn.Module):
         return position_ids
 
 
-
 class FewShotLanguageModelClassifier(nn.Module):
 
     def __init__(
@@ -196,16 +195,13 @@ class FewShotLanguageModelClassifier(nn.Module):
         base_model: PreTrainedModel,
         tokenizer: PreTrainedTokenizer, 
         labels_dict: Dict[int,str],
-        template: PromptTemplate, 
-        sentences_shots: Optional[List[str]] = None,
-        labels_shots: Optional[List[str]] = None
     ):
         super().__init__()
-        self.prompt_encoder = PromptEncoder(base_model, tokenizer, template, sentences_shots, labels_shots)
+        self.prompt_encoder = PromptEncoder(base_model, tokenizer)
         self.labels_decoder = LabelsDecoder(base_model, tokenizer, labels_dict)
 
-    def forward(self, batch_queries):
-        encoder_output = self.prompt_encoder(batch_queries)
+    def forward(self, encoded_prompts_batch):
+        encoder_output = self.prompt_encoder(encoded_prompts_batch)
         labels_logits = self.labels_decoder(encoder_output)
         return encoder_output, labels_logits
         

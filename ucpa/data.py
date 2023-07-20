@@ -1,6 +1,9 @@
 
 import numpy as np
 import pandas as pd
+import torch
+from torch.utils.data import Dataset, DataLoader
+
 
 class PromptTemplate:
     """ Prompt template for a few-shot classification task."""
@@ -135,7 +138,7 @@ def load_dbpedia(data_dir):
 
 
 
-class ClassificationDataset:
+class ClassificationDatasetDict:
     """ Few-shot classification dataset."""
 
     short2name = {
@@ -145,7 +148,7 @@ class ClassificationDataset:
         "dbpedia": "DBPedia"
     }
 
-    def __init__(self,dataset_name,data_dir="",n_shots=0,num_train_samples=None,num_test_samples=None,random_state=None):
+    def __init__(self,dataset_name,data_dir="",n_shots=0,num_train_samples=None,num_test_samples=None,random_state=None,sort_by_length=True,ascending=False):
         """ Initialize dataset and load data. """
         self.dataset_name = dataset_name
         if dataset_name == "trec":
@@ -164,6 +167,8 @@ class ClassificationDataset:
         self.sentences_shots, labels_idx = self._get_random_shots(n_shots)
         self.labels_shots = [self.label_dict[idx] for idx in labels_idx] if labels_idx is not None else None
         self._shuffle_and_subsample(num_train_samples,num_test_samples)
+        self.sort_by_length = sort_by_length
+        self.ascending = ascending
 
 
     def _shuffle_and_subsample(self,num_train_samples,num_test_samples):
@@ -206,31 +211,101 @@ class ClassificationDataset:
     def __getitem__(self, split):
         """ Return split of the dataset. """
         if split in ["train", "test"]:
-            return {"sentences": self._data[f"{split}_sentences"], "labels": self._data[f"{split}_labels"]}
+            return ClassificationDataset(
+                sentences=self._data[f"{split}_sentences"], 
+                labels=self._data[f"{split}_labels"],
+                sort_by_length=self.sort_by_length, 
+                ascending=self.ascending
+            )
         elif split == "shots":
-            return {"sentences": self.sentences_shots, "labels": self.labels_shots}
+            return ShotsContainer(
+                sentences=self.sentences_shots, 
+                labels=self.labels_shots
+            )
         else:
             raise ValueError("Split must be either 'train' or 'test'.")
         
 
-class BatchLoader:
+class ShotsContainer(dict):
 
-    def __init__(self, dataset, batch_size):
-        self.dataset = dataset
-        self.batch_size = batch_size
-        sample_key = next(iter(self.dataset))
-        self.num_batches = int(np.ceil(len(self.dataset[sample_key]) / self.batch_size))
+    def __init__(self, sentences, labels):
+        self.sentences_shots = sentences
+        self.labels_shots = labels
+        super().__init__(sentences=sentences, labels=labels)
 
-    def __iter__(self):
-        return iter(self._get_batches())
-    
-    def _get_batches(self):
-        for idx in range(self.num_batches):
-            batch = {}
-            for key in self.dataset:
-                batch[key] = self.dataset[key][idx * self.batch_size : (idx + 1) * self.batch_size]
-            yield batch
+    def __getitem__(self, key):
+        if key in ["sentences", "labels"]:
+            return super().__getitem__(key)
+        else:
+            raise ValueError("Key must be either 'sentences' or 'labels'.")
+
+    def __setitem__(self, key, value):
+        if key in ["sentences", "labels"]:
+            super().__setitem__(key, value)
+        else:
+            raise ValueError("Key must be either 'sentences' or 'labels'.")
+
+    def __repr__(self):
+        return f"ShotsContainer(sentences={self.sentences_shots}, labels={self.labels_shots})"
+
+    def __str__(self):
+        return f"ShotsContainer(sentences={self.sentences_shots}, labels={self.labels_shots})"
+
+
+class ClassificationDataset(Dataset):
+
+    def __init__(self, sentences, labels, sort_by_length=True, ascending=False):
+        if sort_by_length:
+            sorted_idx = np.argsort([len(sentence) for sentence in sentences])
+            if not ascending:
+                sorted_idx = sorted_idx[::-1]
+            sorted_sentences = []
+            sorted_labels = []
+            for idx in sorted_idx:
+                sorted_sentences.append(sentences[idx])
+                sorted_labels.append(labels[idx])
+        else:
+            sorted_sentences = sentences
+            sorted_labels = labels
+        self.sentences = sorted_sentences
+        self.labels = sorted_labels
 
     def __len__(self):
-        return self.num_batches
+        return len(self.sentences)
+    
+    def __getitem__(self, idx):
+        return self.sentences[idx], self.labels[idx]
+
+
+class DataCollator:
+
+    def __init__(self, tokenizer, template, sentences_shots=None, labels_shots=None):
+        self.tokenizer = tokenizer
+        self.template = template
+        self.sentences_shots = sentences_shots
+        self.labels_shots = labels_shots
+
+    def __call__(self, batch):
+        queries_batch, labels_batch = zip(*batch)
+        prompts_batch = [self.template.construct_prompt(query,sentences_shots=self.sentences_shots,labels_shots=self.labels_shots) for query in queries_batch]
+        encoded_prompts = self.tokenizer(prompts_batch, return_tensors="pt", padding=True)
+        return {
+            "sentences": encoded_prompts,
+            "labels": torch.tensor(labels_batch)
+        }
+
+class SequentialLoaderWithDataCollator(DataLoader):
+
+    def __init__(self, dataset, tokenizer, template, shots, batch_size=32, **kwargs):
+        super().__init__(
+            dataset=dataset,
+            batch_size=batch_size,
+            shuffle=False,
+            collate_fn=DataCollator(
+                tokenizer=tokenizer,
+                template=template,
+                sentences_shots=shots["sentences"],
+                labels_shots=shots["labels"]
+            ),
+        )
  

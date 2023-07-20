@@ -4,10 +4,9 @@ import os
 import numpy as np
 import torch
 from ucpa.utils import parse_args, read_config, save_config
-from ucpa.data import PromptTemplate, ClassificationDataset, BatchLoader
+from ucpa.data import PromptTemplate, ClassificationDatasetDict, SequentialLoaderWithDataCollator
 from ucpa.models import load_base_model, FewShotLanguageModelClassifier
 from tqdm import tqdm
-from copy import deepcopy
 
 PREFIX_SAMPLE_SEPARATOR = " "
 QUERY_LABEL_SEPARATOR = "\n"
@@ -69,31 +68,32 @@ def main():
     # Iterate over datasets
     dataset_bar = tqdm(config["datasets"], desc="Dataset")
     for dataset_name in dataset_bar:
-        dataset_bar.set_description(f"Dataset {ClassificationDataset.short2name[dataset_name]}")
+        dataset_bar.set_description(f"Dataset {ClassificationDatasetDict.short2name[dataset_name]}")
         if os.path.exists(os.path.join(args.results_dir,dataset_name)):
             continue
 
         # Instantiate classification model and dataset
         template, labels_dict = dataset_config[dataset_name]
-        dataset = ClassificationDataset(
+        dataset = ClassificationDatasetDict(
             dataset_name,
             args.data_dir,
             n_shots=0,
             num_train_samples=config["num_train_samples"],
             num_test_samples=config["num_test_samples"],
-            random_state=config["random_state"]
+            random_state=config["random_state"],
+            sort_by_length=True,
+            ascending=False
         )
         model = FewShotLanguageModelClassifier(
             base_model=base_model,
             tokenizer=tokenizer, 
-            labels_dict=labels_dict,
-            template=template, 
-            sentences_shots=dataset["shots"]["sentences"],
-            labels_shots=dataset["shots"]["labels"]
+            labels_dict=labels_dict
         )
         result = run(
             model,
             dataset,
+            tokenizer=tokenizer,
+            template=template,
             batch_size = config["batch_size"]
         )
 
@@ -103,27 +103,26 @@ def main():
             os.makedirs(dir_name,exist_ok=True)
             np.save(os.path.join(dir_name,f"{key}.npy"),result[key])
 
-def sort_split_by_sentence_length(data):
-    sorted_idx = np.argsort([len(sentence) for sentence in data["sentences"]])[::-1]
-    sorted_data = {}
-    for key in data:
-        sorted_data[key] = [data[key][idx] for idx in sorted_idx]
-    sorted_data = deepcopy(sorted_data)
-    return sorted_data
-
 
 def get_split_probs(
     model, 
     dataset,
-    split,
+    tokenizer,
+    template,
+    shots,
     batch_size = 32,
 ):
-    sorted_data = sort_split_by_sentence_length(dataset[split])
-    loader = BatchLoader(sorted_data,batch_size)
+    loader = SequentialLoaderWithDataCollator(
+        dataset=dataset,
+        tokenizer=tokenizer,
+        template=template,
+        shots=shots,
+        batch_size=batch_size
+    )
 
     all_logprobs = []
     all_labels = []
-    train_bar = tqdm(loader, desc=split, total=len(loader))
+    train_bar = tqdm(loader, desc="Batches", total=len(loader))
     for batch in train_bar:
         with torch.no_grad():
             _, logits = model(batch["sentences"])
@@ -137,13 +136,15 @@ def get_split_probs(
 def run(
     model, 
     dataset,
+    tokenizer,
+    template,
     batch_size = 32,
 ):
     # Train logprobs:
-    train_logprobs, train_labels = get_split_probs(model,dataset,"train",batch_size)
+    train_logprobs, train_labels = get_split_probs(model, dataset["train"], tokenizer, template, dataset["shots"], batch_size)
     
     # Test logprobs:
-    test_logprobs, test_labels = get_split_probs(model,dataset,"test",batch_size)
+    test_logprobs, test_labels = get_split_probs(model, dataset["test"], tokenizer, template, dataset["shots"], batch_size)
 
     results = {
         "train.logprobs": train_logprobs,
