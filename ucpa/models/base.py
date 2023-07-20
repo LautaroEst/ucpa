@@ -11,7 +11,8 @@ SUPPORTED_MODELS = {
         "gpt2",
         # "gpt2-medium",
         # "gpt2-large",
-        "gpt2-xl"
+        "gpt2-xl",
+        "meta-llama/Llama-2-7b-hf"
     ],
     "encoder_decoder": [
         "t5-small",
@@ -70,7 +71,32 @@ class LabelsDecoder(nn.Module):
         return logits
     
     def _encoder_decoder_forward(self, encoder_output, decoder_input):
-        raise NotImplementedError(f"Architecture type encoder_decoder not implemented.")
+        pad_token_id = self.tokenizer.pad_token_id
+        pad_tensor = torch.ones(
+            decoder_input["input_ids"].shape[0], 1,
+            dtype=decoder_input["input_ids"].dtype,
+            device=decoder_input["input_ids"].device
+        ) * pad_token_id
+        decoder_input_ids = torch.cat((pad_tensor,decoder_input["input_ids"]),dim=1)
+        
+        pad_tensor = torch.ones(
+            decoder_input["attention_mask"].shape[0], 1,
+            dtype=decoder_input["attention_mask"].dtype,
+            device=decoder_input["attention_mask"].device
+        )
+        decoder_attention_mask = torch.cat((pad_tensor,decoder_input["attention_mask"]),dim=1)
+        out = self.base_model(
+            attention_mask=encoder_output["attention_mask"],
+            decoder_input_ids=decoder_input_ids,
+            decoder_attention_mask=decoder_attention_mask,
+            encoder_outputs=(
+                encoder_output["encoder_last_hidden_state"],
+                encoder_output["encoder_hidden_states"],
+                encoder_output["encoder_attentions"]
+            )
+        )
+        logits = out.logits[:,:-1,:]
+        return logits
 
     def forward(self, encoder_output):
         batch_size = encoder_output["input_ids"].shape[0]
@@ -132,7 +158,22 @@ class PromptEncoder(nn.Module):
         return encoder_output
     
     def _encoder_decoder_forward(self, encoded_prompt):
-        raise NotImplementedError(f"Architecture type encoder_decoder not implemented.")
+        fake_encoded_decoder_input = self.tokenizer([""] * encoded_prompt["input_ids"].shape[0], padding=True, return_tensors="pt")
+        out = self.base_model(
+            input_ids=encoded_prompt["input_ids"],
+            attention_mask=encoded_prompt["attention_mask"],
+            decoder_input_ids=fake_encoded_decoder_input["input_ids"],
+            decoder_attention_mask=fake_encoded_decoder_input["attention_mask"],
+        )
+        encoder_output = {
+            "input_ids": encoded_prompt["input_ids"],
+            "attention_mask": encoded_prompt["attention_mask"],
+            "encoder_last_hidden_state": out.encoder_last_hidden_state,
+            "encoder_hidden_states": out.encoder_hidden_states,
+            "encoder_attentions": out.encoder_attentions
+        }
+        return encoder_output
+
 
     def forward(self, queries_batch):
         prompts_batch = [self.template.construct_prompt(query,sentences_shots=self.sentences_shots,labels_shots=self.labels_shots) for query in queries_batch]
