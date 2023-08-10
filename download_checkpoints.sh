@@ -1,4 +1,4 @@
-#! /bin/bash -ex
+#!/bin/bash -ex
 # Description: Download checkpoints from Huggingface
 
 CHECKPOINT_DIR=$(pwd)/checkpoints
