@@ -1,4 +1,4 @@
-#! /bin/bash -ex
+#!/bin/bash -ex
 # Description: Run test from tests directory
 
 # Set the paths
