@@ -1,6 +1,3 @@
-#!/bin/bash -ex
-# Description: Run an experiment with the given name and config file
-
 # Set the paths
 SCRIPTS_DIR=$(pwd)/scripts
 DATA_DIR=$(pwd)/data
