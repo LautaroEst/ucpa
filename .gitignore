@@ -3,4 +3,6 @@ data/
 results/
 __pycache__/
 *.vscode/
-checkpoints
+checkpoints/
+logs/
+
