@@ -4,6 +4,7 @@ import torch.nn as nn
 from transformers import PreTrainedTokenizer, PreTrainedModel, AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
 from typing import Optional, List, Dict
 from ..data import PromptTemplate
+import lightning.pytorch as pl
 
 
 SUPPORTED_MODELS = {
@@ -188,7 +189,24 @@ class PromptEncoder(nn.Module):
         return position_ids
 
 
-class FewShotLanguageModelClassifier(nn.Module):
+# class FewShotLanguageModelClassifier(nn.Module):
+
+#     def __init__(
+#         self, 
+#         base_model: PreTrainedModel,
+#         tokenizer: PreTrainedTokenizer, 
+#         labels_dict: Dict[int,str],
+#     ):
+#         super().__init__()
+#         self.prompt_encoder = PromptEncoder(base_model, tokenizer)
+#         self.labels_decoder = LabelsDecoder(base_model, tokenizer, labels_dict)
+
+#     def forward(self, encoded_prompts_batch):
+#         encoder_output = self.prompt_encoder(encoded_prompts_batch)
+#         labels_logits = self.labels_decoder(encoder_output)
+#         return encoder_output, labels_logits
+        
+class FewShotLanguageModelClassifier(pl.LightningModule):
 
     def __init__(
         self, 
@@ -204,4 +222,3 @@ class FewShotLanguageModelClassifier(nn.Module):
         encoder_output = self.prompt_encoder(encoded_prompts_batch)
         labels_logits = self.labels_decoder(encoder_output)
         return encoder_output, labels_logits
-        

@@ -12,19 +12,21 @@
 project="ucpa"
 env_name="ucpa"
 
-# Models to run
-models_names=("gpt2" "t5-small")
+# Tests to run
+# tests_names=("prompt_template" "gpt2_model")
+tests_names=("gpt2_model" )
+
 
 source ~/.initproject $project $env_name
 
 echo ""
 date
-echo "Running models in zero-shot mode..."
+echo "Test scripts"
 
-for model_name in "${models_names[@]}"
+for test_name in "${tests_names[@]}"
 do
     echo ""
-    echo "Experiment on $model_name model..."
+    echo "Starting $test_name test..."
     echo ""
-    ./run_experiment.sh zero_shot $model_name
+    ./run_test.sh $test_name
 done

@@ -34,7 +34,7 @@ def load_trec(data_dir):
     inv_label_dict = {'NUM': 0, 'LOC': 1, 'HUM': 2, 'DESC': 3, 'ENTY': 4, 'ABBR': 5}
     train_sentences = []
     train_labels = []
-    with open(f'{data_dir}/trec/train.txt', 'r') as train_data:
+    with open(f'{data_dir}/ucpa_trec/train.txt', 'r') as train_data:
         for line in train_data:
             train_label = line.split(' ')[0].split(':')[0]
             train_label = inv_label_dict[train_label]
@@ -46,7 +46,7 @@ def load_trec(data_dir):
 
     test_sentences = []
     test_labels = []
-    with open(f'{data_dir}/trec/test.txt', 'r') as test_data:
+    with open(f'{data_dir}/ucpa_trec/test.txt', 'r') as test_data:
         for line in test_data:
             test_label = line.split(' ')[0].split(':')[0]
             test_label = inv_label_dict[test_label]
@@ -73,9 +73,9 @@ def load_sst2(data_dir):
             sentences.append(line[2:].strip())
         return sentences, labels
 
-    with open(f"{data_dir}/sst2/stsa.binary.train", "r") as f:
+    with open(f"{data_dir}/ucpa_sst2/stsa.binary.train", "r") as f:
         train_lines = f.readlines()
-    with open(f"{data_dir}/sst2/stsa.binary.test", "r") as f:
+    with open(f"{data_dir}/ucpa_sst2/stsa.binary.test", "r") as f:
         test_lines = f.readlines()
     train_sentences, train_labels = process_raw_data_sst(train_lines)
     test_sentences, test_labels = process_raw_data_sst(test_lines)
@@ -89,8 +89,8 @@ def load_sst2(data_dir):
     return data
 
 def load_agnews(data_dir):
-    train_data = pd.read_csv(f'{data_dir}/agnews/train.csv')
-    test_data = pd.read_csv(f'{data_dir}/agnews/test.csv')
+    train_data = pd.read_csv(f'{data_dir}/ucpa_agnews/train.csv')
+    test_data = pd.read_csv(f'{data_dir}/ucpa_agnews/test.csv')
 
     train_sentences = train_data['Title'] + ". " + train_data['Description']
     train_sentences = list(
@@ -114,8 +114,8 @@ def load_agnews(data_dir):
     return data
 
 def load_dbpedia(data_dir):
-    train_data = pd.read_csv(f'{data_dir}/dbpedia/train_subset.csv')
-    test_data = pd.read_csv(f'{data_dir}/dbpedia/test.csv')
+    train_data = pd.read_csv(f'{data_dir}/ucpa_dbpedia/train_subset.csv')
+    test_data = pd.read_csv(f'{data_dir}/ucpa_dbpedia/test.csv')
 
     train_sentences = train_data['Text']
     train_sentences = list([item.replace('""', '"') for item in train_sentences])

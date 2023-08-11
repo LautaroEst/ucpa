@@ -1,7 +1,7 @@
 from utils import parse_args
 from ucpa.models import load_base_model, FewShotLanguageModelClassifier
 from ucpa.models.base import PromptEncoder
-from ucpa.data import PromptTemplate
+from ucpa.data import PromptTemplate, ClassificationDataset, SequentialLoaderWithDataCollator, ShotsContainer
 import torch
 
 
@@ -53,15 +53,30 @@ def run_fewshot_model(model_name,checkpoints_dir):
     model = FewShotLanguageModelClassifier(
         base_model=base_model,
         tokenizer=tokenizer,
-        labels_dict=labels_dict,
-        template=template,
-        sentences_shots=None,
-        labels_shots=None
+        labels_dict=labels_dict
     )
+
+    dataset = ClassificationDataset(
+        queries_batch, 
+        labels=[0 for _ in range(len(queries_batch))], 
+        sort_by_length=False, 
+        ascending=False
+    )
+
+    loader = SequentialLoaderWithDataCollator(
+        dataset=dataset,
+        tokenizer=tokenizer,
+        template=template,
+        shots=ShotsContainer([],[]),
+        batch_size=len(queries_batch)
+    )
+
+    batch = next(iter(loader))
     model.eval()
     with torch.no_grad():
-        output = model(queries_batch)
-    return output
+        _, logits = model(batch["sentences"])
+
+    return logits
 
 def main():
     args = parse_args()
