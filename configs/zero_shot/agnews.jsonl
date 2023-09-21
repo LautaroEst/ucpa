@@ -1,0 +1,1 @@
+{"id": "0", "prompt": "Classify the news articles into the categories of World, Sports, Business, and Technology.\n\nArticle:\n{query}\n\nAnswer:\n", "labels": ["World", "Sports", "Person", "Business", "Technology"], "num_train_samples": 600, "num_test_samples": null, "batch_size": 8}

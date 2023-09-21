@@ -6,37 +6,7 @@ import glob
 
 
 
-def parse_args():
-    """ Parse command line arguments."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--data-dir", 
-        type=str, 
-        default=""
-    )
-    parser.add_argument(
-        "--results-dir", 
-        type=str, 
-        default=""
-    )
-    parser.add_argument(
-        "--config-file", 
-        type=str,
-        default=""
-    )
-    parser.add_argument(
-        "--input-files",
-        type=str,
-        default=""
-    )
-    parser.add_argument(
-        "--checkpoints-dir",
-        type=str,
-        default=""
-    )
-    args = parser.parse_args()
-    args.input_files = glob.glob(args.input_files)
-    return args
+
 
 
 def read_config(config_file):

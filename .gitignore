@@ -1,6 +1,8 @@
-*.egg-info/
-data/
-results/
 __pycache__/
 *.vscode/
-checkpoints
+*.egg-info/
+
+data/
+results/
+results.old/
+logs/

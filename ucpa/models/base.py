@@ -1,9 +1,12 @@
 
+from lightning.pytorch.utilities.types import STEP_OUTPUT
 import torch
+from torch import Tensor
 import torch.nn as nn
-from transformers import PreTrainedTokenizer, PreTrainedModel, AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
-from typing import Optional, List, Dict
-from ..data import PromptTemplate
+from transformers import PreTrainedTokenizer, PreTrainedModel
+from typing import Any, Optional, List, Dict
+import lightning.pytorch as pl
+import torch.nn.functional as F
 
 
 SUPPORTED_MODELS = {
@@ -35,13 +38,11 @@ class LabelsDecoder(nn.Module):
         self, 
         base_model: PreTrainedModel,
         tokenizer: PreTrainedTokenizer, 
-        labels_dict: Dict[int,str]
     ):
         super().__init__()
         self.base_model = base_model
         self.tokenizer = tokenizer
-        self.labels_dict = labels_dict
-        self.encoded_labels = self._encode_labels()
+        self.encoded_labels = None
         if self.base_model.name_or_path in SUPPORTED_MODELS["decoder_only"]:
             self._forward = self._decoder_only_forward
         elif self.base_model.name_or_path in SUPPORTED_MODELS["encoder_decoder"]:
@@ -49,8 +50,8 @@ class LabelsDecoder(nn.Module):
         else:
             raise ValueError(f"Architecture type of {self.base_model.name_or_path} model not supported.")
         
-    def _encode_labels(self):
-        return {idx: self.tokenizer([f" {label}"], return_tensors="pt", padding=True) for idx, label in self.labels_dict.items()}
+    def _set_labels_names(self, labels_dict: Dict[int: str]):
+        self.encoded_labels = {idx: self.tokenizer([f" {label}"], return_tensors="pt", padding=True) for idx, label in labels_dict.items()}
 
     def _decoder_only_forward(self, encoder_output, decoder_input):
         batch_size = encoder_output["input_ids"].shape[0]
@@ -106,6 +107,8 @@ class LabelsDecoder(nn.Module):
         return logits
 
     def forward(self, encoder_output):
+        if self.encoded_labels is None:
+            raise ValueError("Labels not setted!")
         batch_size = encoder_output["input_ids"].shape[0]
         labels_logits = []
         for idx in range(len(self.encoded_labels)):
@@ -188,20 +191,34 @@ class PromptEncoder(nn.Module):
         return position_ids
 
 
-class FewShotLanguageModelClassifier(nn.Module):
+class LanguageModelClassifier(pl.LightningModule):
 
     def __init__(
         self, 
         base_model: PreTrainedModel,
-        tokenizer: PreTrainedTokenizer, 
-        labels_dict: Dict[int,str],
+        tokenizer: PreTrainedTokenizer
     ):
         super().__init__()
         self.prompt_encoder = PromptEncoder(base_model, tokenizer)
-        self.labels_decoder = LabelsDecoder(base_model, tokenizer, labels_dict)
+        self.labels_decoder = LabelsDecoder(base_model, tokenizer)
 
     def forward(self, encoded_prompts_batch):
         encoder_output = self.prompt_encoder(encoded_prompts_batch)
         labels_logits = self.labels_decoder(encoder_output)
         return encoder_output, labels_logits
+    
+    def training_step(self, encoded_prompts_batch):
+        encoder_output, labels_logits = self(encoded_prompts_batch)
+        loss = F.cross_entropy(labels_logits,encoded_prompts_batch["label"])
+        return loss
+    
+    def configure_optimizers(self) -> Any:
+        return super().configure_optimizers()
+    
+    def backward(self, loss: Tensor, *args: Any, **kwargs: Any) -> None:
+        return super().backward(loss, *args, **kwargs)
+    
+    def set_labels_names(self, labels: List[str]):
+        labels_dict = {i: label for i, label in enumerate(labels)}
+        self.labels_decoder._set_labels_names(labels_dict)
         
