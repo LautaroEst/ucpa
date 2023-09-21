@@ -5,17 +5,24 @@
 #$ -N ucpa
 #$ -o /mnt/matylda3/qestienne/projects/ucpa/logs/out.log
 #$ -e /mnt/matylda3/qestienne/projects/ucpa/logs/err.log
-#$ -q all.q@svatava.q,all.q@@blade
+#$ -q all.q
+#$ -l matylda3=0.5,gpu=1,gpu_ram=32G,ram_free=64G,mem_free=16G
 #
 
 # Project and environment names
 project="ucpa"
 env_name="ucpa"
 
-# Models to run
-models_names=("gpt2" "t5-small")
+# Init project
+source ~/.bashrc
+conda activate $env_name
+cd $PROJECTS_DIR/$project
+export CUDA_VISIBLE_DEVICES=$(free-gpus.sh 1)
 
-source ~/.initproject $project $env_name
+# Models to run
+# models_names=("gpt2" "t5-small")
+# models_names=("gpt2-xl" "google/flan-t5-small")
+models_names=("meta-llama/Llama-2-7b-hf" )
 
 echo ""
 date

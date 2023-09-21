@@ -20,14 +20,14 @@ Install this package in editable mode
 pip install -e .
 ```
 
-Download the models checkpoints running the following script from the main directory:
+Set up the project running the following script from the main directory:
 ```
-bash download_checkpoints.sh
+chmod +x set_up.sh
+./set_up.sh
 ```
 
-## Usage
+## Usage with SGE
 
-Run the experiments:
 ```
-bash run_experiments.sh $EXPERIMENT_NAME $EXPERIMENT_CONFIG $INPUT_FILES
+qsub runs/myrun.sh
 ```

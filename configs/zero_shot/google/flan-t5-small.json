@@ -1,0 +1,8 @@
+{
+    "random_state": 2349876,
+    "model": "google/flan-t5-small",
+    "datasets": ["trec", "sst2", "agnews", "dbpedia"],
+    "num_train_samples": 600,
+    "num_test_samples": null,
+    "batch_size": 8
+}

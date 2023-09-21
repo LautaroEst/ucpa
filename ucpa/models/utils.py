@@ -3,6 +3,7 @@ import os
 from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer, AutoConfig
 from accelerate import init_empty_weights, load_checkpoint_and_dispatch
 import glob
+import torch
 
 # def get_checkpoint_path(model_name,checkpoints_dir):
 #     model_dir = glob.glob(os.path.join(checkpoints_dir,f"{model_name}/models--{model_name.replace('/','--')}/snapshots/**/"))[0]
@@ -61,5 +62,8 @@ def load_base_model(model_name,checkpoints_dir):
     # model = load_checkpoint_and_dispatch(
     #     model, checkpoint=checkpoint, device_map="auto", no_split_module_classes=['Block']
     # )
+
+    if torch.cuda.is_available():
+        model = model.cuda()
 
     return model, tokenizer

@@ -66,9 +66,8 @@ def main():
     base_model, tokenizer = load_base_model(config["model"],checkpoints_dir=args.checkpoints_dir)
 
     # Iterate over datasets
-    dataset_bar = tqdm(config["datasets"], desc="Dataset")
-    for dataset_name in dataset_bar:
-        dataset_bar.set_description(f"Dataset {ClassificationDatasetDict.short2name[dataset_name]}")
+    for i, dataset_name in enumerate(config["datasets"],1):
+        print(f"Dataset {ClassificationDatasetDict.short2name[dataset_name]} ({i}/{len(config['datasets'])})")
         if os.path.exists(os.path.join(args.results_dir,dataset_name)):
             continue
 
@@ -122,10 +121,12 @@ def get_split_probs(
 
     all_logprobs = []
     all_labels = []
-    train_bar = tqdm(loader, desc="Batches", total=len(loader))
-    for batch in train_bar:
+    device = next(iter(model.parameters())).device
+    for bi, batch in enumerate(loader,1):
+        print(f"Batch {bi}/{len(loader)}")
         with torch.no_grad():
-            _, logits = model(batch["sentences"])
+            batch_input = batch["sentences"].to(device)
+            _, logits = model(batch_input)
             logprobs = torch.log_softmax(logits,dim=-1).cpu().numpy()
         all_logprobs.append(logprobs)
         all_labels.append(batch["labels"])

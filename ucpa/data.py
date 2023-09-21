@@ -1,4 +1,5 @@
 
+from copy import deepcopy
 import numpy as np
 import pandas as pd
 import torch
@@ -156,9 +157,19 @@ class ClassificationDatasetDict:
         elif dataset_name == "sst2":
             self._data = load_sst2(data_dir)
         elif dataset_name == "agnews":
-            self._data = load_agnews(data_dir)
+            data = load_agnews(data_dir)
+            rs = np.random.RandomState(1)
+            test_idx = rs.permutation(len(data['test_sentences']))[:1000]
+            data["test_sentences"] = [data["test_sentences"][idx] for idx in test_idx]
+            data["test_labels"] = [data["test_labels"][idx] for idx in test_idx]
+            self._data = data
         elif dataset_name == "dbpedia":
-            self._data = load_dbpedia(data_dir)
+            data = load_dbpedia(data_dir)
+            rs = np.random.RandomState(1)
+            test_idx = rs.permutation(len(data['test_sentences']))[:1000]
+            data["test_sentences"] = [data["test_sentences"][idx] for idx in test_idx]
+            data["test_labels"] = [data["test_labels"][idx] for idx in test_idx]
+            self._data = data
         else:
             raise ValueError(f"Unknown dataset {dataset_name}.")
         self.n_shots = n_shots
@@ -287,7 +298,27 @@ class DataCollator:
 
     def __call__(self, batch):
         queries_batch, labels_batch = zip(*batch)
-        prompts_batch = [self.template.construct_prompt(query,sentences_shots=self.sentences_shots,labels_shots=self.labels_shots) for query in queries_batch]
+        # prompts_batch = [self.template.construct_prompt(query,sentences_shots=self.sentences_shots,labels_shots=self.labels_shots) for query in queries_batch]
+        # encoded_prompts = self.tokenizer(prompts_batch, return_tensors="pt", padding=True)
+
+        prompts_batch = []
+        sentence_shots = deepcopy(self.sentences_shots)
+        labels_shots = deepcopy(self.labels_shots)
+        for query in queries_batch:
+            prompt = self.template.construct_prompt(query, sentences_shots=sentence_shots, labels_shots=labels_shots)
+            original_query = query
+            while sum(self.tokenizer(prompt,return_tensors=None,padding=False,truncation=False)["attention_mask"]) > self.tokenizer.model_max_length - 5:
+                print(sum(self.tokenizer(prompt,return_tensors=None,padding=False,truncation=False)["attention_mask"]))
+                query = query[:-10]
+                if len(query) < 40:
+                    query = original_query
+                    while sum(self.tokenizer(prompt,return_tensors=None,padding=False,truncation=False)["attention_mask"]) > self.tokenizer.model_max_length - 5:
+                        if sentence_shots is not None:
+                            sentence_shots = [s[:-10] for s in sentence_shots]
+                        query = query[:-10]
+                        prompt = self.template.construct_prompt(query, sentences_shots=sentence_shots, labels_shots=labels_shots)
+                prompt = self.template.construct_prompt(query, sentences_shots=sentence_shots, labels_shots=labels_shots)
+            prompts_batch.append(prompt)
         encoded_prompts = self.tokenizer(prompts_batch, return_tensors="pt", padding=True)
         return {
             "sentences": encoded_prompts,
