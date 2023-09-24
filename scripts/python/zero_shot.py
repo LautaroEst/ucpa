@@ -8,7 +8,7 @@ import torch
 from ucpa.data import ClassificationDatasetDict, SequentialLoaderWithDataCollator
 from ucpa.models import load_base_model, LanguageModelClassifier
 from tqdm import tqdm
-
+import lightning.pytorch as pl
 
 def parse_args():
     """ Parse command line arguments."""
@@ -29,8 +29,9 @@ def parse_args():
 
 def main():
 
-    # Parse command line arguments and read config file
+    # Parse command line arguments and define save path
     args = parse_args()
+    root_save_path = os.path.join(args.root_directory, "results/zero_shot", args.dataset, args.model, str(args.seed))
 
     # Instantiate base model
     print("Loading base model...")
@@ -41,8 +42,6 @@ def main():
     )
 
     for config in args.configs_dicts:
-
-        model.set_labels_names(config["labels"])
 
         # Instantiate classification model and dataset
         dataset = ClassificationDatasetDict(
@@ -55,41 +54,37 @@ def main():
             sort_by_length=True,
             ascending=False
         )
+
         results = {
-            "train": run_model(model, dataset["train"], tokenizer, config["batch_size"]),
-            "test": run_model(model, dataset["test"], tokenizer, config["batch_size"])
+            "train": run_model(model, dataset["train"], tokenizer, config["labels"], config["batch_size"]),
+            "test": run_model(model, dataset["test"], tokenizer, config["labels"], config["batch_size"])
         } 
-    
+
         # Save results
         for key, result in results.items():
-            dir_name = os.path.join(args.root_directory, "results", args.dataset, args.model, args.seed)
             for output in result.keys():
-                np.save(os.path.join(dir_name,f"{key}.{output}.npy"),result[output])
+                np.save(os.path.join(root_save_path,str(config["id"]),f"{key}.{output}.npy"),result[output])
 
 
-def run_model(model, dataset, tokenizer, batch_size = 32):
-    loader = SequentialLoaderWithDataCollator(dataset, tokenizer, batch_size)
+def run_model(model, dataset, tokenizer, labels, batch_size = 32):
 
-    all_logits = []
-    all_labels = []
-    train_bar = tqdm(loader, desc="Batches", total=len(loader))
-    for batch in train_bar:
-        with torch.no_grad():
-            _, logits = model(batch["sentences"])
-            # logprobs = torch.log_softmax(logits,dim=-1).cpu().numpy()
-            logits = logits.cpu().numpy()
-        all_logits.append(logits)
-        all_labels.append(batch["labels"])
-    all_logits = np.concatenate(all_logits,axis=0)
-    all_labels = np.concatenate(all_labels,axis=0)
-
+    # Create loader and trainer to predict
+    loader = SequentialLoaderWithDataCollator(dataset, tokenizer, labels, batch_size)
+    trainer = pl.Trainer(
+        accelerator="gpu" if torch.cuda.is_available() else "cpu",
+        devices=-1
+    )
+    predictions = trainer.predict(model, loader)
+    default_lightning_logs_dir = os.path.join(os.getcwd(),"lightning_logs")
+    if os.path.exists(default_lightning_logs_dir):
+        os.removedirs(default_lightning_logs_dir)
+    logits, labels = zip(*predictions)
     return {
-        "logits": all_logits, 
-        "labels": all_labels
+        "logits": np.concatenate(logits),
+        "labels": np.concatenate(labels)
     }
 
-           
-        
+    
 
 if __name__ == "__main__":
     main()

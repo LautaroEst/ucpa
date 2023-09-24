@@ -42,7 +42,6 @@ class LabelsDecoder(nn.Module):
         super().__init__()
         self.base_model = base_model
         self.tokenizer = tokenizer
-        self.encoded_labels = None
         if self.base_model.name_or_path in SUPPORTED_MODELS["decoder_only"]:
             self._forward = self._decoder_only_forward
         elif self.base_model.name_or_path in SUPPORTED_MODELS["encoder_decoder"]:
@@ -50,9 +49,6 @@ class LabelsDecoder(nn.Module):
         else:
             raise ValueError(f"Architecture type of {self.base_model.name_or_path} model not supported.")
         
-    def _set_labels_names(self, labels_dict: Dict[int: str]):
-        self.encoded_labels = {idx: self.tokenizer([f" {label}"], return_tensors="pt", padding=True) for idx, label in labels_dict.items()}
-
     def _decoder_only_forward(self, encoder_output, decoder_input):
         batch_size = encoder_output["input_ids"].shape[0]
         label_len = decoder_input["attention_mask"].shape[1]
@@ -106,18 +102,13 @@ class LabelsDecoder(nn.Module):
         logits = out.logits[:,:-1,:]
         return logits
 
-    def forward(self, encoder_output):
-        if self.encoded_labels is None:
-            raise ValueError("Labels not setted!")
-        batch_size = encoder_output["input_ids"].shape[0]
+    def forward(self, encoder_output, encoded_labels):
         labels_logits = []
-        for idx in range(len(self.encoded_labels)):
-            encoded_label = self.encoded_labels[idx]
-            encoded_label = {k: v.repeat(batch_size,1).to(device=encoder_output["input_ids"].device) for k, v in encoded_label.items()}
+        for idx in range(len(encoded_labels)):
+            encoded_label = encoded_labels[idx]
             logits = self._forward(encoder_output, encoded_label)
-            logprobs = torch.log_softmax(logits,dim=-1)
             gathered_logits = torch.gather(
-                logprobs,
+                logits,
                 dim=-1,
                 index=encoded_label["input_ids"].unsqueeze(-1)
             ).squeeze(-1).sum(dim=1, keepdim=True)
@@ -143,36 +134,35 @@ class PromptEncoder(nn.Module):
         else:
             raise ValueError(f"Architecture type of {self.base_model.name_or_path} model not supported.")
 
-    def _decoder_only_forward(self, encoded_prompts_batch):
-        position_ids = self.create_position_ids(encoded_prompts_batch["attention_mask"])
+    def _decoder_only_forward(self, input_ids, attention_mask):
+        position_ids = self.create_position_ids(attention_mask)
         prompt_output = self.base_model(
-            input_ids=encoded_prompts_batch["input_ids"],
-            attention_mask=encoded_prompts_batch["attention_mask"],
+            input_ids=input_ids,
+            attention_mask=attention_mask,
             position_ids=position_ids,
             use_cache=True, 
             output_attentions=False, 
             output_hidden_states=False
         )
         encoder_output = {
-            "input_ids": encoded_prompts_batch["input_ids"],
-            "attention_mask": encoded_prompts_batch["attention_mask"],
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
             "past_key_values": prompt_output.past_key_values,
             "logits": prompt_output.logits
         }
         return encoder_output
     
-    def _encoder_decoder_forward(self, encoded_prompts_batch):
-        fake_encoded_decoder_input = self.tokenizer([""] * encoded_prompts_batch["input_ids"].shape[0], padding=True, return_tensors="pt")
-        fake_encoded_decoder_input = {k: v.to(device=encoded_prompts_batch["input_ids"].device) for k, v in fake_encoded_decoder_input.items()}
+    def _encoder_decoder_forward(self, input_ids, attention_mask):
+        fake_encoded_decoder_input = self.tokenizer([""] * input_ids.shape[0], padding=True, return_tensors="pt")
         out = self.base_model(
-            input_ids=encoded_prompts_batch["input_ids"],
-            attention_mask=encoded_prompts_batch["attention_mask"],
-            decoder_input_ids=fake_encoded_decoder_input["input_ids"],
-            decoder_attention_mask=fake_encoded_decoder_input["attention_mask"],
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            decoder_input_ids=fake_encoded_decoder_input["input_ids"].to(device=input_ids.device),
+            decoder_attention_mask=fake_encoded_decoder_input["attention_mask"].to(device=attention_mask.device),
         )
         encoder_output = {
-            "input_ids": encoded_prompts_batch["input_ids"],
-            "attention_mask": encoded_prompts_batch["attention_mask"],
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
             "encoder_last_hidden_state": out.encoder_last_hidden_state,
             "encoder_hidden_states": out.encoder_hidden_states,
             "encoder_attentions": out.encoder_attentions
@@ -180,8 +170,8 @@ class PromptEncoder(nn.Module):
         return encoder_output
 
 
-    def forward(self, encoded_prompts_batch):
-        encoder_output = self._forward(encoded_prompts_batch)
+    def forward(self, input_ids, attention_mask):
+        encoder_output = self._forward(input_ids, attention_mask)
         return encoder_output
 
     @staticmethod
@@ -202,14 +192,14 @@ class LanguageModelClassifier(pl.LightningModule):
         self.prompt_encoder = PromptEncoder(base_model, tokenizer)
         self.labels_decoder = LabelsDecoder(base_model, tokenizer)
 
-    def forward(self, encoded_prompts_batch):
-        encoder_output = self.prompt_encoder(encoded_prompts_batch)
-        labels_logits = self.labels_decoder(encoder_output)
+    def forward(self, input_ids, attention_mask, encoded_labels):
+        encoder_output = self.prompt_encoder(input_ids, attention_mask)
+        labels_logits = self.labels_decoder(encoder_output, encoded_labels)
         return encoder_output, labels_logits
     
-    def training_step(self, encoded_prompts_batch):
-        encoder_output, labels_logits = self(encoded_prompts_batch)
-        loss = F.cross_entropy(labels_logits,encoded_prompts_batch["label"])
+    def training_step(self, batch, batch_idx, dataloader_idx=0):
+        encoder_output, labels_logits = self(batch["input_ids"], batch["attention_mask"])
+        loss = F.cross_entropy(labels_logits,batch["label"])
         return loss
     
     def configure_optimizers(self) -> Any:
@@ -221,4 +211,12 @@ class LanguageModelClassifier(pl.LightningModule):
     def set_labels_names(self, labels: List[str]):
         labels_dict = {i: label for i, label in enumerate(labels)}
         self.labels_decoder._set_labels_names(labels_dict)
+
+    def predict_step(self, batch, batch_idx, dataloader_idx=0):
+        _, logits = self(batch["input_ids"], batch["attention_mask"], batch["encoded_labels"])
+        logits = logits.cpu().numpy()
+        labels = batch["label"].cpu().numpy()
+        return logits, labels
+    
+
         

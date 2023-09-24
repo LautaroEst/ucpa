@@ -28,7 +28,7 @@ declare -a dataset=(
 )
 
 declare -a models=(
-    "gpt2"
+    # "gpt2"
     "t5-small"
     "google--flan-t5-small"
 )
@@ -45,9 +45,9 @@ for model in "${models[@]}"; do
         # Run the experiment
         python scripts/python/$script_name.py \
             --root_directory=. \
-            --base_model=$model \
+            --model=$model \
             --dataset=$dataset \
-            --config-file=configs/$script_name/${model}_${dataset}.json \
+            --config=configs/$script_name/${model}_${dataset}.jsonl \
             --seed=$seed
     done
 done

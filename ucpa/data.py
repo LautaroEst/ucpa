@@ -205,29 +205,42 @@ class ClassificationDataset(Dataset):
 
 class DataCollator:
 
-    def __init__(self, tokenizer, template):
+    def __init__(self, tokenizer, template, labels):
         self.tokenizer = tokenizer
         self.template = template
+        self.labels = labels
+        num_of_prompt_tokens_without_query = len(tokenizer.tokenize(template.construct_prompt(" ")))
+        self.max_query_tokens = tokenizer.max_len_single_sentence - num_of_prompt_tokens_without_query - max([len(tokenizer.tokenize(l)) for l in labels]) - 2
 
     def __call__(self, batch):
         queries_batch, labels_batch = zip(*batch)
-        prompts_batch = [self.template.construct_prompt(query) for query in queries_batch]
+        try:
+            prompts_batch = [self.template.construct_prompt(self.tokenizer.convert_tokens_to_string(self.tokenizer.tokenize(re.sub(r"\\",r"\\\\",query))[:self.max_query_tokens])) for query in queries_batch]
+        except:
+            import pdb; pdb.set_trace()
         encoded_prompts = self.tokenizer(prompts_batch, return_tensors="pt", padding=True)
         return {
-            "sentences": encoded_prompts,
-            "labels": torch.tensor(labels_batch)
+            **{k: v  for k, v in encoded_prompts.items()},
+            "label": torch.tensor(labels_batch),
+            "encoded_labels": {idx: {k: v.repeat(len(queries_batch),1) for k, v in self.tokenizer([f" {label}"], return_tensors="pt", padding=True).items()} for idx, label in enumerate(self.labels)}
         }
 
 class SequentialLoaderWithDataCollator(DataLoader):
 
-    def __init__(self, dataset, tokenizer, batch_size=32):
+    def __init__(self, dataset, tokenizer, labels, batch_size=32, **kwargs):
+        self.tokenizer = tokenizer
+        self.labels = labels
+        kwargs.pop("collate_fn", None)
+        kwargs.pop("shuffle", None)
         super().__init__(
             dataset=dataset,
             batch_size=batch_size,
             shuffle=False,
             collate_fn=DataCollator(
                 tokenizer=tokenizer,
-                template=dataset.template
+                template=dataset.template,
+                labels=labels
             ),
+            **kwargs
         )
  
