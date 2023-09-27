@@ -1,5 +1,6 @@
 from ..base import BaseClassificationDatasetDict
 import pandas as pd
+import numpy as np
 
 
 class TonyZhaoTREC(BaseClassificationDatasetDict):
@@ -99,6 +100,13 @@ class TonyZhaoAGNEWS(BaseClassificationDatasetDict):
         train_labels = [l - 1 for l in train_labels] # make them 0, 1, 2, 3 instead of 1, 2, 3, 4
         test_labels = [l - 1 for l in test_labels]
 
+        ##########################################################
+        rs = np.random.RandomState(0)
+        test_idx = rs.permutation(len(test_sentences))[:1000]
+        test_sentences = [test_sentences[i] for i in test_idx]
+        test_labels = [test_labels[i] for i in test_idx]
+        ##########################################################
+
         data = {
             'train_ids': list(range(len(train_sentences))),
             'train_sentences': train_sentences,
@@ -130,6 +138,13 @@ class TonyZhaoDBPEDIA(BaseClassificationDatasetDict):
         
         train_labels = [l - 1 for l in train_labels] # make them 0, 1, 2, 3 instead of 1, 2, 3, 4...
         test_labels = [l - 1 for l in test_labels]
+
+        ##########################################################
+        rs = np.random.RandomState(1)
+        test_idx = rs.permutation(len(test_sentences))[:1000]
+        test_sentences = [test_sentences[i] for i in test_idx]
+        test_labels = [test_labels[i] for i in test_idx]
+        ##########################################################
 
         data = {
             'train_ids': list(range(len(train_sentences))),

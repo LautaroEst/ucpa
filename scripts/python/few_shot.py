@@ -56,15 +56,14 @@ def main():
             template_args=config["template_args"]
         )
 
-        results = {
-            "train": run_model(model, dataset["train"], config["labels"], config["batch_size"]),
-            "test": run_model(model, dataset["test"], config["labels"], config["batch_size"])
-        } 
-
         # Save results
-        for key, result in results.items():
-            for output in result.keys():
-                np.save(os.path.join(root_save_path,str(config["id"]),f"{key}.{output}.npy"),result[output])
+        output_keys = ["logits", "labels"]
+        for split in ["train", "test"]:
+            if all([os.path.exists(os.path.join(root_save_path,str(config["id"]),f"{split}.{output}.npy")) for output in output_keys]):
+                continue
+            result = run_model(model, dataset["train"], config["labels"], config["batch_size"])
+            for output in output_keys:
+                np.save(os.path.join(root_save_path,str(config["id"]),f"{split}.{output}.npy"),result[output])
 
 
 def run_model(model, dataset, labels, batch_size = 32):

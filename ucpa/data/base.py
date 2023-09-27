@@ -46,7 +46,7 @@ class BaseClassificationDatasetDict:
     def _get_random_shots(self, data, n_shots):
 
         if n_shots == 0:
-            return None, None, None
+            return data, None, None, None
 
         # Remove the prompt shots from the training set
         train_shots_idx = self._rs.permutation(len(data["train_sentences"]))[:n_shots]
