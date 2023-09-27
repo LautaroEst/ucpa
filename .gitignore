@@ -2,7 +2,6 @@ __pycache__/
 *.vscode/
 *.egg-info/
 
-data/
 results/
 results.old/
 logs/

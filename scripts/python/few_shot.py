@@ -5,7 +5,7 @@ import json
 import os
 import numpy as np
 import torch
-from ucpa.data import load_dataset, SequentialLoaderWithDataCollator, SimpleQuerySubstitutionPrompt
+from ucpa.data import load_dataset, SequentialLoaderWithDataCollator
 from ucpa.models import LanguageModelClassifier
 import lightning.pytorch as pl
 
@@ -40,16 +40,20 @@ def main():
 
     for config in args.configs_dicts:
 
+        # Results path for this config
+        os.makedirs(os.path.join(root_save_path,str(config["id"])),exist_ok=True)
+
         # Instantiate classification model and dataset
         dataset = load_dataset(
             args.dataset,
+            n_shots=config["n_shots"],
             data_dir=os.path.join(args.root_directory,"data"),
-            template=SimpleQuerySubstitutionPrompt(config["prompt"], "{query}"),
             num_train_samples=config["num_train_samples"],
             num_test_samples=config["num_test_samples"],
             random_state=args.seed,
             sort_by_length=True,
-            ascending=False
+            ascending=False,
+            template_args=config["template_args"]
         )
 
         results = {
@@ -69,12 +73,11 @@ def run_model(model, dataset, labels, batch_size = 32):
     loader = SequentialLoaderWithDataCollator(dataset, model.tokenizer, labels, batch_size)
     trainer = pl.Trainer(
         accelerator="gpu" if torch.cuda.is_available() else "cpu",
-        devices=-1
+        devices=-1,
+        enable_checkpointing=False, 
+        logger=False
     )
     predictions = trainer.predict(model, loader)
-    default_lightning_logs_dir = os.path.join(os.getcwd(),"lightning_logs")
-    if os.path.exists(default_lightning_logs_dir):
-        os.removedirs(default_lightning_logs_dir)
     logits, labels = zip(*predictions)
     return {
         "logits": np.concatenate(logits),

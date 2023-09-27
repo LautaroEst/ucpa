@@ -1,2 +1,2 @@
-from .base import LanguageModelClassifier, SUPPORTED_MODELS
-from .utils import load_base_model
+from .base import LanguageModelClassifier
+from .utils import SUPPORTED_MODELS

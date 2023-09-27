@@ -1,22 +1,24 @@
-from .base import SUPPORTED_MODELS
-import os
-from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer
 
 
-def load_base_model(model_name):
 
-    # Load pretrained tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
-
-    # Load pretrained model
-    if model_name in SUPPORTED_MODELS["decoder_only"]:
-        model = AutoModelForCausalLM.from_pretrained(model_name, local_files_only=True)
-        model.config.pad_token_id = model.config.eos_token_id
-        tokenizer.padding_side = "left"
-        tokenizer.pad_token = tokenizer.eos_token
-    elif model_name in SUPPORTED_MODELS["encoder_decoder"]:
-        model = AutoModelForSeq2SeqLM.from_pretrained(model_name, local_files_only=True)
-    else:
-        raise ValueError(f"Model {model_name} not supported.")
-    
-    return model, tokenizer
+SUPPORTED_MODELS = {
+    "decoder_only": [
+        "gpt2",
+        # "gpt2-medium",
+        # "gpt2-large",
+        "gpt2-xl",
+        "meta-llama/Llama-2-7b-hf"
+    ],
+    "encoder_decoder": [
+        "t5-small",
+        # "t5-base",
+        # "t5-large",
+        # "t5-3b",
+        # "t5-11b",
+        # "google/flan-t5-xxl",
+        # "google/flan-t5-base",
+        # "google/flan-t5-xl",
+        # "google/flan-t5-large",
+        "google/flan-t5-small"
+    ]
+}
