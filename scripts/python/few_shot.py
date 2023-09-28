@@ -34,11 +34,19 @@ def main():
     args = parse_args()
     root_save_path = os.path.join(args.root_directory, "results", args.experiment_name, args.dataset, args.model, str(args.seed))
 
+    output_keys = ["logits", "labels"]
+    splits = ["train", "test"]
+    valid_configs = [config for config in args.configs_dicts if any([not os.path.exists(os.path.join(root_save_path,str(config["id"]),f"{split}.{output}.npy")) for output in output_keys for split in splits])]
+
+    if len(valid_configs) == 0:
+        print("Everything computed for this model. Skipping...")
+        return
+
     # Instantiate base model
     print("Loading base model...")
     model = LanguageModelClassifier(args.model)
 
-    for config in args.configs_dicts:
+    for config in valid_configs:
 
         # Results path for this config
         os.makedirs(os.path.join(root_save_path,str(config["id"])),exist_ok=True)
@@ -57,8 +65,7 @@ def main():
         )
 
         # Save results
-        output_keys = ["logits", "labels"]
-        for split in ["train", "test"]:
+        for split in splits:
             if all([os.path.exists(os.path.join(root_save_path,str(config["id"]),f"{split}.{output}.npy")) for output in output_keys]):
                 continue
             result = run_model(model, dataset["train"], config["labels"], config["batch_size"])
