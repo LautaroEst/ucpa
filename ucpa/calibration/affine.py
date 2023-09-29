@@ -27,7 +27,7 @@ class AffineCalibrator(BaseCalibrator):
         model="temperature scaling", 
         psr="log-loss", 
         maxiters=100, 
-        lr=1e-4, 
+        lr=1., 
         tolerance=1e-6,
     ):
         super().__init__()
@@ -64,6 +64,7 @@ class AffineCalibrator(BaseCalibrator):
         self.maxiters = maxiters
         self.lr = lr
         self.tolerance_change = tolerance
+        self.loss_history = []
 
     def forward(self, logits):
         if self.model == "matrix scaling":
@@ -75,7 +76,8 @@ class AffineCalibrator(BaseCalibrator):
         optimizer = optim.LBFGS(
             self.parameters(),
             lr=self.lr,
-            max_iter=self.maxiters,
+            max_iter=20,
+            history_size=100,
             tolerance_change=self.tolerance_change
         )
         logits = logits.cpu()
@@ -86,4 +88,7 @@ class AffineCalibrator(BaseCalibrator):
             loss = self.loss_fn(cal_logits, labels)
             loss.backward()
             return loss
-        optimizer.step(closure)
+        
+        for _ in range(self.maxiters):
+            optimizer.step(closure)
+            self.loss_history.append(self.loss_fn(self(logits), labels).item())

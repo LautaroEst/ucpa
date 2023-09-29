@@ -83,12 +83,12 @@ class LabelsDecoder(nn.Module):
         for idx in range(len(encoded_labels)):
             encoded_label = encoded_labels[idx]
             logits = self._forward(encoder_output, encoded_label)
-            gathered_logits = torch.gather(
-                logits,
+            gathered_logprobs = torch.gather(
+                torch.log_softmax(logits, dim=-1),
                 dim=-1,
                 index=encoded_label["input_ids"].unsqueeze(-1)
             ).squeeze(-1).sum(dim=1, keepdim=True)
-            labels_logits.append(gathered_logits[:, 0])
+            labels_logits.append(gathered_logprobs[:, 0])
         labels_logits = torch.stack(labels_logits,dim=1)
         return labels_logits
 
@@ -188,7 +188,7 @@ class LanguageModelClassifier(pl.LightningModule):
 
 
     def training_step(self, batch, batch_idx, dataloader_idx=0):
-        encoder_output, labels_logits = self(batch)
+        _, labels_logits = self(batch)
         loss = F.cross_entropy(labels_logits,batch["label"])
         return loss
 

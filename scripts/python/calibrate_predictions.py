@@ -70,16 +70,16 @@ def run_calibration(train_logits, train_labels, test_logits, test_labels, method
     test_labels = torch.from_numpy(test_labels)
 
     if method == "affine_bias_only":
-        model = AffineCalibrator(num_classes, model="bias only", psr="log-loss", maxiters=100, lr=1e-4, tolerance=1e-6)
+        model = AffineCalibrator(num_classes, model="bias only", psr="log-loss", maxiters=100, lr=1, tolerance=1e-9)
         model.train_calibrator(train_logits, train_labels)
     elif method == "affine_vector_scaling":
-        model = AffineCalibrator(num_classes, model="vector scaling", psr="log-loss", maxiters=100, lr=1e-4, tolerance=1e-6)
+        model = AffineCalibrator(num_classes, model="vector scaling", psr="log-loss", maxiters=100, lr=1, tolerance=1e-9)
         model.train_calibrator(train_logits, train_labels)
     elif method in "UCPA":
-        model = UCPACalibrator(num_classes, max_iters=10, tolerance=1e-6)
+        model = UCPACalibrator(num_classes, max_iters=20, tolerance=1e-6)
         model.train_calibrator(train_logits, priors=None)
     elif method in "SUCPA":
-        model = UCPACalibrator(num_classes, max_iters=10, tolerance=1e-6)
+        model = UCPACalibrator(num_classes, max_iters=20, tolerance=1e-6)
         priors = torch.bincount(test_labels, minlength=num_classes)
         model.train_calibrator(train_logits, priors=priors)
     elif method in "UCPA-naive":

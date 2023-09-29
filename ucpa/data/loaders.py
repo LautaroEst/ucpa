@@ -21,6 +21,8 @@ class DataCollator:
             labels.append(sample["label"])
 
         return {
+            "id": ids,
+            "prompt": prompts,
             "encoded_prompt": self.tokenizer(prompts, return_tensors="pt", padding=True),
             "label": torch.tensor(labels),
             "encoded_labels": {idx: {k: v.repeat(len(prompts),1) for k, v in self.tokenizer([f" {label}"], return_tensors="pt", padding=True).items()} for idx, label in enumerate(self.labels)}
