@@ -39,6 +39,7 @@ def main():
         raise ValueError("Bootstrap number must be positive or 0 (no bootstrap)")
     results.reset_index(drop=False,inplace=False).to_csv(os.path.join(args.root_directory,"results",args.experiment_name,"results.csv"))
 
+    import pdb; pdb.set_trace()
     for model in models:
         # Number of samples vs metric
         print("Plotting samples vs metrics...")
@@ -64,6 +65,7 @@ def plot_num_samples_vs_metrics(root_directory, experiment_name, results, model,
                     ax[i,j].fill_between(num_samples, means-stds, means+stds, alpha=0.2)
                 ax[i,j].grid(True)
                 ax[i,j].set_ylabel(metric, fontsize=18)
+                ax[i,j].set_xscale("log")
                 if i == 0:
                     ax[i,j].set_title(dataset, fontsize=18)
 
@@ -124,7 +126,7 @@ def collect_results(root_directory, experiment_name, models, datasets, metrics, 
                             results_dict["dataset"] = dataset
                             results_dict["num_shots"] = int(n_shot.split("_")[0])
                             results_dict["method"] = "no_adaptation"
-                            results_dict["num_samples"] = None
+                            results_dict["num_samples"] = -1
                             results.append(results_dict)
                     else:
                         results_dict = {f"metric:{metric}": compute_metric(original_logits, labels, metric, bootstrap=False, rs=rs) for metric in metrics}
@@ -132,7 +134,7 @@ def collect_results(root_directory, experiment_name, models, datasets, metrics, 
                         results_dict["dataset"] = dataset
                         results_dict["method"] = "no_adaptation"
                         results_dict["num_shots"] = int(n_shot.split("_")[0])
-                        results_dict["num_samples"] = None
+                        results_dict["num_samples"] = -1
                         results.append(results_dict)
                     
                     for result in os.listdir(os.path.join(results_dir,seed,n_shot,"calibration")):
@@ -157,7 +159,7 @@ def collect_results(root_directory, experiment_name, models, datasets, metrics, 
                             results_dict["num_samples"] = int(num_samples)
                             results.append(results_dict)
     
-    results = pd.DataFrame.from_records(results)   
+    results = pd.DataFrame.from_records(results)
     results = results.groupby(by=["model","dataset","method","num_shots","num_samples"]).agg({f"metric:{metric}": ["mean","std"] for metric in metrics})
     return results
 
@@ -165,8 +167,12 @@ def collect_results(root_directory, experiment_name, models, datasets, metrics, 
 def compute_metric(logits, labels, metric="cross_entropy", bootstrap=True, rs=None):
     
     if bootstrap:
-        df_boots = pd.DataFrame({"logits": logits, "labels": labels}).sample(n=logits.shape[0],replace=True,random_state=rs)
-        logits, labels = df_boots["logits"].values, df_boots["labels"].values
+        if rs is None:
+            boots_idx = np.random.choice(len(labels),len(labels),replace=True)
+        else:
+            boots_idx = rs.choice(len(labels),len(labels),replace=True)
+        logits = logits[boots_idx,:]
+        labels = labels[boots_idx]
 
     logits = torch.from_numpy(logits)
     labels = torch.from_numpy(labels)

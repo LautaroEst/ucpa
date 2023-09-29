@@ -70,4 +70,5 @@ python scripts/python/plot_paper_results.py \
     --models="${models[*]// / }" \
     --datasets="${datasets[*]// / }" \
     --metrics="${metrics[*]// / }" \
-    --seeds="${seeds[*]// / }"
+    --seeds="${seeds[*]// / }" \
+    --bootstrap=100
