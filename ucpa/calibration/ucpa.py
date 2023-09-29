@@ -1,9 +1,8 @@
 import numpy as np
 import torch
 from torch import nn
-from .base import BaseCalibrator
 
-class UCPACalibrator(BaseCalibrator):
+class UCPACalibrator(nn.Module):
 
     """ 
     Implementation of the UCPA/SUCPA iterative and naive methods. 
@@ -38,3 +37,11 @@ class UCPACalibrator(BaseCalibrator):
                 break
             gamma_old = gamma_new
         self.beta.data = beta
+
+    def calibrate(self, logits):
+        logits_device = logits.device
+        model = self.to(logits_device)
+        model.eval()
+        with torch.no_grad():
+            calibrated_logits = self(logits)
+        return calibrated_logits

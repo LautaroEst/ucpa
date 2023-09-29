@@ -23,6 +23,7 @@ class PrefacePlusShotsPrompt:
             if len(sentences_shots) != len(labels_shots):
                 raise ValueError("Sentence and label shots must be the same length.")
             shots_str = shot_separator.join(f"{query_prefix}{prefix_sample_separator}{s}{query_label_separator}{label_prefix}{prefix_sample_separator}{l}" for s, l in zip(sentences_shots, labels_shots))
+            shots_str = shots_str + shot_separator
         else:
             raise ValueError("Sentence and label shots must either both be None or both be lists of strings.")
         

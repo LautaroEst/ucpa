@@ -17,7 +17,7 @@ cd $PROJECTS_DIR/$project_name
 export CUDA_VISIBLE_DEVICES=$(free-gpus.sh 1)
 
 # Configure test
-TEST_DIR=./scripts/python/tests
+TESTS_DIR=./scripts/python/tests
 TEST_NAME=$1
 
 # Run the experiment
