@@ -32,36 +32,36 @@ declare -a models=(
     # "google--flan-t5-small"
 )
 
-for model in "${models[@]}"; do
-    for dataset in "${datasets[@]}"; do
-        for seed in "${seeds[@]}"; do
+# for model in "${models[@]}"; do
+#     for dataset in "${datasets[@]}"; do
+#         for seed in "${seeds[@]}"; do
 
-            # Echo the experiment configuration
-            echo ">>> Running experiment: $script_name - $dataset - $model - $seed <<<"
+#             # Echo the experiment configuration
+#             echo ">>> Running experiment: $script_name - $dataset - $model - $seed <<<"
 
-            # Create the results directory
-            mkdir -p results/$script_name/$dataset/$model/$seed
+#             # Create the results directory
+#             mkdir -p results/$script_name/$dataset/$model/$seed
 
-            # Run datasets on the model
-            python scripts/python/few_shot.py \
-                --root_directory=. \
-                --experiment_name=$script_name \
-                --model=$model \
-                --dataset=$dataset \
-                --config=configs/$script_name/${model}_${dataset}.jsonl \
-                --seed=$seed
+#             # Run datasets on the model
+#             python scripts/python/few_shot.py \
+#                 --root_directory=. \
+#                 --experiment_name=$script_name \
+#                 --model=$model \
+#                 --dataset=$dataset \
+#                 --config=configs/$script_name/${model}_${dataset}.jsonl \
+#                 --seed=$seed
 
-            # Run calibration on predictions
-            python scripts/python/calibrate_predictions.py \
-                --root_directory=. \
-                --experiment_name=$script_name \
-                --model=$model \
-                --dataset=$dataset \
-                --config=configs/$script_name/${model}_${dataset}.jsonl \
-                --seed=$seed
-        done
-    done
-done
+#             # Run calibration on predictions
+#             python scripts/python/calibrate_predictions.py \
+#                 --root_directory=. \
+#                 --experiment_name=$script_name \
+#                 --model=$model \
+#                 --dataset=$dataset \
+#                 --config=configs/$script_name/${model}_${dataset}.jsonl \
+#                 --seed=$seed
+#         done
+#     done
+# done
 
 # Plot results
 python scripts/python/plot_paper_results.py \

@@ -30,19 +30,22 @@ def main():
     metrics = args.metrics.split(" ")
     seeds = args.seeds.split(" ")
 
+    print("Collecting results...")
     if args.bootstrap == 0:
         results = collect_results(args.root_directory, args.experiment_name, models, datasets, metrics, seeds, bootstrap=False)
     elif args.bootstrap > 0:
         results = collect_results(args.root_directory, args.experiment_name, models, datasets, metrics, seeds, bootstrap=True, N_bootstrap=args.bootstrap)
     else:
         raise ValueError("Bootstrap number must be positive or 0 (no bootstrap)")
-    results.reset_index(drop=False,inplace=False).to_csv(os.path.join(args.root_directory,args.experiment_name,"results.csv"))
+    results.reset_index(drop=False,inplace=False).to_csv(os.path.join(args.root_directory,"results",args.experiment_name,"results.csv"))
 
     for model in models:
         # Number of samples vs metric
-        fig = plot_num_samples_vs_metrics(results, model, datasets, metrics)
+        print("Plotting samples vs metrics...")
+        fig = plot_num_samples_vs_metrics(args.root_directory, args.experiment_name, results, model, datasets, metrics)
         # Number of shots vs metric
-        fig = plot_num_shots_vs_metrics(results, model, datasets, metrics)
+        print("Plotting shots vs metrics...")
+        fig = plot_num_shots_vs_metrics(args.root_directory, args.experiment_name, results, model, datasets, metrics)
         
 
 def plot_num_samples_vs_metrics(root_directory, experiment_name, results, model, datasets, metrics):
@@ -103,7 +106,7 @@ def plot_num_shots_vs_metrics(root_directory, experiment_name, results, model, d
         fig.savefig(os.path.join(root_directory,"results",experiment_name,f"{model}_{n}-samples_shots_vs_metric.png"))
 
 
-def collect_results(root_directory, experiment_name, models, datasets, metrics, seeds, bootstrap, N_bootstrap):
+def collect_results(root_directory, experiment_name, models, datasets, metrics, seeds, bootstrap=True, N_bootstrap=None):
     results = []
     for model in models:
         for dataset in datasets:
