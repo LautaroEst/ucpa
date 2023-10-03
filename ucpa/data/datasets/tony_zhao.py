@@ -7,7 +7,7 @@ class TonyZhaoTREC(BaseClassificationDatasetDict):
 
     @staticmethod
     def _load_data(data_dir):
-        labels_dict = {0: ['Number'], 1: ['Location'], 2: ['Person'], 3: ['Description'], 4: ['Entity'], 5: ['Abbreviation']}
+        labels_dict = {0: 'Number', 1: 'Location', 2: 'Person', 3: 'Description', 4: 'Entity', 5: 'Abbreviation'}
         inv_label_dict = {'NUM': 0, 'LOC': 1, 'HUM': 2, 'DESC': 3, 'ENTY': 4, 'ABBR': 5}
         
         train_sentences = []
@@ -48,7 +48,7 @@ class TonyZhaoSST2(BaseClassificationDatasetDict):
 
     @staticmethod
     def _load_data(data_dir):
-        labels_dict = {0: ['Negative'], 1: ['Positive']}
+        labels_dict = {0: 'Negative', 1: 'Positive'}
 
         def process_raw_data_sst(lines):
             """from lines in dataset to two lists of sentences and labels respectively"""
@@ -82,7 +82,7 @@ class TonyZhaoAGNEWS(BaseClassificationDatasetDict):
     @staticmethod
     def _load_data(data_dir):
 
-        labels_dict = {0: ['World'], 1: ['Sports'], 2: ['Business'], 3: ['Technology']}
+        labels_dict = {0: 'World', 1: 'Sports', 2: 'Business', 3: 'Technology'}
 
         train_data = pd.read_csv(f'{data_dir}/tony_zhao/agnews/train.csv')
         test_data = pd.read_csv(f'{data_dir}/tony_zhao/agnews/test.csv')
@@ -123,7 +123,7 @@ class TonyZhaoDBPEDIA(BaseClassificationDatasetDict):
     @staticmethod
     def _load_data(data_dir):
 
-        labels_dict = {0: ['Company'], 1: ['School'], 2: ['Artist'], 3: ['Athlete'], 4: ['Politician'], 5: ['Transportation'], 6: ['Building'], 7: ['Nature'], 8: ['Village'], 9: ['Animal'], 10: ['Plant'], 11: ['Album'], 12: ['Film'], 13: ['Book']}
+        labels_dict = {0: 'Company', 1: 'School', 2: 'Artist', 3: 'Athlete', 4: 'Politician', 5: 'Transportation', 6: 'Building', 7: 'Nature', 8: 'Village', 9: 'Animal', 10: 'Plant', 11: 'Album', 12: 'Film', 13: 'Book'}
 
         train_data = pd.read_csv(f'{data_dir}/tony_zhao/dbpedia/train_subset.csv')
         test_data = pd.read_csv(f'{data_dir}/tony_zhao/dbpedia/test.csv')

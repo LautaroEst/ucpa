@@ -22,6 +22,9 @@ def parse_args():
     return args
 
 
+
+
+
 def main():
     
     args = parse_args()
@@ -39,7 +42,6 @@ def main():
         raise ValueError("Bootstrap number must be positive or 0 (no bootstrap)")
     results.reset_index(drop=False,inplace=False).to_csv(os.path.join(args.root_directory,"results",args.experiment_name,"results.csv"))
 
-    import pdb; pdb.set_trace()
     for model in models:
         # Number of samples vs metric
         print("Plotting samples vs metrics...")
@@ -50,7 +52,18 @@ def main():
         
 
 def plot_num_samples_vs_metrics(root_directory, experiment_name, results, model, datasets, metrics):
+
+    method2format = {
+        "no_adaptation": {"color": "black", "linestyle": "-", "label": "No Adaptation", "linewidth": 2},
+        "affine_bias_only": {"color": "tab:orange", "linestyle": "-", "label": "Calibration with $\\alpha=1$"},
+        "UCPA-naive": {"color": "tab:blue", "linestyle": "-", "label": "UCPA naive", "linewidth": 2},
+        "SUCPA-naive": {"color": "tab:blue", "linestyle": "--", "label": "SUCPA naive", "linewidth": 2, "marker": ".", "markersize": 10},
+        "UCPA": {"color": "tab:red", "linestyle": "-", "label": "UCPA", "linewidth": 2},
+        "SUCPA": {"color": "tab:red", "linestyle": "--", "label": "SUCPA", "linewidth": 2, "marker": ".", "markersize": 10},
+    }
     num_shots = results.index.get_level_values("num_shots").unique()
+    num_samples = results.index.get_level_values("num_samples").unique().values
+    num_samples = np.array([s for s in num_samples if s != -1])
     for n in num_shots:
         fig, ax = plt.subplots(len(metrics),len(datasets),figsize=(20, 10),sharex=True,sharey=False)
         ax = ax.reshape(len(metrics),len(datasets))
@@ -58,16 +71,25 @@ def plot_num_samples_vs_metrics(root_directory, experiment_name, results, model,
             for i, metric in enumerate(metrics):
                 methods = results.index.get_level_values("method").unique()
                 for method in methods:
-                    num_samples = results.loc[(model,dataset,method,n,slice(None)),(f"metric:{metric}","mean")].index.get_level_values("num_samples").values
-                    means = results.loc[(model,dataset,method,n,slice(None)),(f"metric:{metric}","mean")].values.reshape(-1)
-                    stds = results.loc[(model,dataset,method,n,slice(None)),(f"metric:{metric}","std")].values.reshape(-1)
-                    ax[i,j].plot(num_samples, means, label=method)
-                    ax[i,j].fill_between(num_samples, means-stds, means+stds, alpha=0.2)
+                    if method == "no_adaptation":
+                        mean = results.loc[(model,dataset,method,n,-1),(f"metric:{metric}","mean")]
+                        means = np.array([mean for _ in num_samples])
+                        std = results.loc[(model,dataset,method,n,-1),(f"metric:{metric}","std")]
+                        stds = np.array([std for _ in num_samples])
+                    else:
+                        means = results.loc[(model,dataset,method,n,slice(None)),(f"metric:{metric}","mean")].values.reshape(-1)
+                        stds = results.loc[(model,dataset,method,n,slice(None)),(f"metric:{metric}","std")].values.reshape(-1)
+                    ax[i,j].plot(num_samples, means, **method2format[method])
+                    ax[i,j].fill_between(num_samples, means-stds, means+stds, alpha=0.2, color=method2format[method]["color"])
                 ax[i,j].grid(True)
-                ax[i,j].set_ylabel(metric, fontsize=18)
                 ax[i,j].set_xscale("log")
+                ax[i,j].set_xticks(num_samples)
+                ax[i,j].set_xticklabels(num_samples, fontsize=12, rotation=45)
+                ax[i,j].set_xlim(num_samples[0],num_samples[-1])
                 if i == 0:
                     ax[i,j].set_title(dataset, fontsize=18)
+            if j == 0:
+                ax[i,j].set_ylabel(metric, fontsize=18)
 
         handles, labels = ax[i,j].get_legend_handles_labels()
         first_handle = handles.pop(0)
@@ -80,7 +102,18 @@ def plot_num_samples_vs_metrics(root_directory, experiment_name, results, model,
 
 
 def plot_num_shots_vs_metrics(root_directory, experiment_name, results, model, datasets, metrics):
+
+    method2format = {
+        "no_adaptation": {"color": "black", "linestyle": "-", "label": "No Adaptation", "linewidth": 2},
+        "affine_bias_only": {"color": "tab:green", "linestyle": "-", "label": "Calibration with $\\alpha=1$"},
+        "UCPA-naive": {"color": "tab:blue", "linestyle": "-", "label": "UCPA naive", "linewidth": 2},
+        "SUCPA-naive": {"color": "tab:blue", "linestyle": "--", "label": "SUCPA naive", "linewidth": 2, "marker": ".", "markersize": 10},
+        "UCPA": {"color": "tab:red", "linestyle": "-", "label": "UCPA", "linewidth": 2},
+        "SUCPA": {"color": "tab:red", "linestyle": "--", "label": "SUCPA", "linewidth": 2, "marker": ".", "markersize": 10},
+    }
+
     num_samples = results.index.get_level_values("num_samples").unique()
+    num_samples = sorted([s for s in num_samples if s != -1])
     for n in num_samples:
         fig, ax = plt.subplots(len(metrics),len(datasets),figsize=(20, 10),sharex=True,sharey=False)
         ax = ax.reshape(len(metrics),len(datasets))
@@ -88,15 +121,24 @@ def plot_num_shots_vs_metrics(root_directory, experiment_name, results, model, d
             for i, metric in enumerate(metrics):
                 methods = results.index.get_level_values("method").unique()
                 for method in methods:
-                    num_shots = results.loc[(model,dataset,method,slice(None),n),(f"metric:{metric}","mean")].index.get_level_values("num_shots").values
-                    means = results.loc[(model,dataset,method,slice(None),n),(f"metric:{metric}","mean")].values.reshape(-1)
-                    stds = results.loc[(model,dataset,method,slice(None),n),(f"metric:{metric}","std")].values.reshape(-1)
-                    ax[i,j].plot(num_shots, means, label=method)
-                    ax[i,j].fill_between(num_shots, means-stds, means+stds, alpha=0.2)
+                    if method == "no_adaptation":
+                        num_shots = results.loc[(model,dataset,method,slice(None),-1),(f"metric:{metric}","mean")].index.get_level_values("num_shots").values
+                        means = results.loc[(model,dataset,method,slice(None),-1),(f"metric:{metric}","mean")].values.reshape(-1)
+                        stds = results.loc[(model,dataset,method,slice(None),-1),(f"metric:{metric}","std")].values.reshape(-1)
+                    else:
+                        num_shots = results.loc[(model,dataset,method,slice(None),n),(f"metric:{metric}","mean")].index.get_level_values("num_shots").values
+                        means = results.loc[(model,dataset,method,slice(None),n),(f"metric:{metric}","mean")].values.reshape(-1)
+                        stds = results.loc[(model,dataset,method,slice(None),n),(f"metric:{metric}","std")].values.reshape(-1)
+                    ax[i,j].plot(num_shots, means, **method2format[method])
+                    ax[i,j].fill_between(num_shots, means-stds, means+stds, alpha=0.2, color=method2format[method]["color"])
                 ax[i,j].grid(True)
-                ax[i,j].set_ylabel(metric, fontsize=18)
+                ax[i,j].set_xticks(num_shots)
+                ax[i,j].set_xticklabels(num_shots, fontsize=12)
+                ax[i,j].set_xlim(num_shots[0],num_shots[-1])
                 if i == 0:
                     ax[i,j].set_title(dataset, fontsize=18)
+            if j == 0:
+                ax[i,j].set_ylabel(metric, fontsize=18)
 
         handles, labels = ax[i,j].get_legend_handles_labels()
         first_handle = handles.pop(0)
