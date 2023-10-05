@@ -1,7 +1,7 @@
 #!/bin/bash
 
-project="interpretability"
-env_name="fair"
+project="ucpa"
+env_name="ucpa"
 
 source ~/.bashrc
 conda activate $env_name

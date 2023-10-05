@@ -10,6 +10,8 @@ from ucpa.data import load_dataset, SequentialLoaderWithDataCollator
 from ucpa.models import LanguageModelClassifier
 import lightning.pytorch as pl
 
+output_keys = ["ids", "prompts", "logits", "labels"]
+splits = ["train", "test"]
 
 def parse_args():
     """ Parse command line arguments."""
@@ -35,8 +37,6 @@ def main():
     args = parse_args()
     root_save_path = os.path.join(args.root_directory, "results", args.experiment_name, args.dataset, args.model, str(args.seed))
 
-    output_keys = ["ids", "prompts", "logits", "labels"]
-    splits = ["train", "test"]
     valid_configs = [config for config in args.configs_dicts if any([not os.path.exists(os.path.join(root_save_path,str(config["id"]),f"{split}.{output}.npy")) for output in output_keys for split in splits])]
 
     if len(valid_configs) == 0:
@@ -45,7 +45,7 @@ def main():
 
     # Instantiate base model
     print("Loading base model...")
-    model = LanguageModelClassifier(args.model)
+    model = LanguageModelClassifier(args.model.replace("--","/"))
 
     for config in valid_configs:
 

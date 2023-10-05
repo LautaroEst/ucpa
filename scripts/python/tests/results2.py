@@ -8,7 +8,7 @@ import torch.nn.functional as F
 
 def main():
     models = ["gpt2-xl"]
-    datasets = ["tony_zhao_trec","tony_zhao_sst2","tony_zhao_agnews","tony_zhao_dbpedia"]
+    datasets = ["tony_zhao_trec"]#,"tony_zhao_sst2","tony_zhao_agnews","tony_zhao_dbpedia"]
     metrics = ["norm_cross_entropy", "accuracy"]
     seeds = ["82033", "12782", "1263", "987", "12299", "9203", "4", "20343", "43", "92374"]
 
@@ -48,7 +48,7 @@ def collect_results(root_directory, experiment_name, models, datasets, metrics, 
                         results.append(results_dict)
 
     results = pd.DataFrame.from_records(results)
-    # results = results.groupby(by=["model","dataset","method","num_shots","num_samples"]).agg({f"metric:{metric}": ["mean","std"] for metric in metrics})
+    results = results.groupby(by=["model","dataset","method","num_shots","num_samples"]).agg({f"metric:{metric}": ["mean","std"] for metric in metrics})
     return results
 
 

@@ -1,1 +1,0 @@
-{"id": "0", "prompt": "Review:\n{query}\n\nSentiment:\n", "labels": ["Negative", "Positive"], "num_train_samples": 600, "num_test_samples": null, "batch_size": 8}

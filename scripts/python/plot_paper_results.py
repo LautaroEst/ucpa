@@ -22,6 +22,18 @@ def parse_args():
     return args
 
 
+metric_short2name = {
+    "norm_cross_entropy": "Normalized Cross-Entropy",
+    "error_rate": "Error Rate",
+    "accuracy": "Accuracy"
+}
+
+dataset_short2name = {
+    "tony_zhao_trec": "TREC",
+    "tony_zhao_sst2": "SST-2",
+    "tony_zhao_agnews": "AGNews",
+    "tony_zhao_dbpedia": "DBPedia"
+}
 
 
 
@@ -87,9 +99,9 @@ def plot_num_samples_vs_metrics(root_directory, experiment_name, results, model,
                 ax[i,j].set_xticklabels(num_samples, fontsize=12, rotation=45)
                 ax[i,j].set_xlim(num_samples[0],num_samples[-1])
                 if i == 0:
-                    ax[i,j].set_title(dataset, fontsize=18)
+                    ax[i,j].set_title(dataset_short2name[dataset], fontsize=18)
             if j == 0:
-                ax[i,j].set_ylabel(metric, fontsize=18)
+                ax[i,j].set_ylabel(metric_short2name[metric], fontsize=18)
 
         handles, labels = ax[i,j].get_legend_handles_labels()
         first_handle = handles.pop(0)
@@ -136,9 +148,9 @@ def plot_num_shots_vs_metrics(root_directory, experiment_name, results, model, d
                 ax[i,j].set_xticklabels(num_shots, fontsize=12)
                 ax[i,j].set_xlim(num_shots[0],num_shots[-1])
                 if i == 0:
-                    ax[i,j].set_title(dataset, fontsize=18)
-            if j == 0:
-                ax[i,j].set_ylabel(metric, fontsize=18)
+                    ax[i,j].set_title(dataset_short2name[dataset], fontsize=18)
+                if j == 0:
+                    ax[i,j].set_ylabel(metric_short2name[metric], fontsize=18)
 
         handles, labels = ax[i,j].get_legend_handles_labels()
         first_handle = handles.pop(0)

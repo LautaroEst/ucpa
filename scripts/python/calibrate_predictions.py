@@ -80,14 +80,16 @@ def run_calibration(train_logits, train_labels, test_logits, test_labels, method
         model.train_calibrator(train_logits, priors=None)
     elif method in "SUCPA":
         model = UCPACalibrator(num_classes, max_iters=20, tolerance=1e-6)
-        priors = torch.bincount(test_labels, minlength=num_classes)
+        priors = torch.bincount(train_labels, minlength=num_classes)
+        priors.masked_fill_(priors == 0, 1e-10)
         model.train_calibrator(train_logits, priors=priors)
     elif method in "UCPA-naive":
         model = UCPACalibrator(num_classes, max_iters=1)
         model.train_calibrator(train_logits, priors=None)
     elif method in "SUCPA-naive":
         model = UCPACalibrator(num_classes, max_iters=1)
-        priors = torch.bincount(test_labels, minlength=num_classes)
+        priors = torch.bincount(train_labels, minlength=num_classes)
+        priors.masked_fill_(priors == 0, 1e-10)
         model.train_calibrator(train_logits, priors=priors)
     else:
         raise ValueError(f"Calibration method {method} not supported.")

@@ -5,7 +5,7 @@
 #$ -o /mnt/matylda3/qestienne/projects/ucpa/logs/paper_results_out.log
 #$ -e /mnt/matylda3/qestienne/projects/ucpa/logs/paper_results_err.log
 #$ -q long.q
-#$ -l matylda3=0.5,gpu=1,gpu_ram=16G,ram_free=64G,mem_free=30G
+#$ -l matylda3=0.5,gpu=1,gpu_ram=48G,ram_free=64G,mem_free=30G
 #
 
 # Configure environment
@@ -27,9 +27,10 @@ declare -a datasets=(
     "tony_zhao_dbpedia"
 )
 declare -a models=(
-    "gpt2-xl"
+    # "gpt2-xl"
     # "t5-small"
-    # "google--flan-t5-small"
+    # "google--flan-t5-xxl"
+    "meta-llama--Llama-2-7b-hf"
 )
 
 for model in "${models[@]}"; do
