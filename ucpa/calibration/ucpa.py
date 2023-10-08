@@ -29,7 +29,7 @@ class UCPACalibrator(nn.Module):
         num_samples, num_classes = logits.shape
         log_num_samples = torch.log(torch.tensor(num_samples))
         log_priors = torch.log(torch.ones(1, num_classes) / num_classes) if priors is None else torch.log(priors).view(1,-1)
-        gamma_old = torch.zeros(num_samples, 1)
+        gamma_old = - torch.logsumexp(logits, dim=1, keepdim=True)
         for _ in range(self.max_iters):
             beta = log_priors - torch.logsumexp(logits + gamma_old, dim=0, keepdim=True) + log_num_samples
             gamma_new = - torch.logsumexp(logits + beta, dim=1, keepdim=True)

@@ -19,12 +19,12 @@ def parse_args():
     parser.add_argument("--root_directory", type=str, default="")
     parser.add_argument("--experiment_name", type=str, default="")
     parser.add_argument("--model", type=str, default="")
-    parser.add_argument("--dataset", type=str, default="")
-    parser.add_argument("--config", type=str, default="")
+    parser.add_argument("--num_train_samples", type=int, default=1000)
+    parser.add_argument("--num_test_samples", type=int, default=-1)
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
 
-    with open(args.config, "r") as f:
+    with open(os.path.join(args.root_directory,f"configs/{args.experiment_name}/{args.model}.jsonl"), "r") as f:
         configs_dicts = [json.loads(config) for config in f.read().splitlines()]
     setattr(args,"configs_dicts",configs_dicts)
     
@@ -35,10 +35,10 @@ def main():
 
     # Parse command line arguments and define save path
     args = parse_args()
-    root_save_path = os.path.join(args.root_directory, "results", args.experiment_name, args.dataset, args.model, str(args.seed))
+    seed = args.seed
+    root_save_path = os.path.join(args.root_directory, "results", args.experiment_name, args.model, str(seed))
 
-    valid_configs = [config for config in args.configs_dicts if any([not os.path.exists(os.path.join(root_save_path,str(config["id"]),f"{split}.{output}.npy")) for output in output_keys for split in splits])]
-
+    valid_configs = [config for config in args.configs_dicts if any([not os.path.exists(os.path.join(root_save_path,config["id"], f"{split}.{output}.npy")) for output in output_keys for split in splits])]
     if len(valid_configs) == 0:
         print("Everything computed for this model. Skipping...")
         return
@@ -50,16 +50,16 @@ def main():
     for config in valid_configs:
 
         # Results path for this config
-        os.makedirs(os.path.join(root_save_path,str(config["id"])),exist_ok=True)
+        os.makedirs(os.path.join(root_save_path, config["id"]), exist_ok=True)
 
         # Instantiate classification model and dataset
         dataset = load_dataset(
-            args.dataset,
+            config["dataset"],
             n_shots=config["n_shots"],
-            data_dir=os.path.join(args.root_directory,"data"),
-            num_train_samples=config["num_train_samples"],
-            num_test_samples=config["num_test_samples"],
-            random_state=args.seed,
+            data_dir=os.path.join(args.root_directory, "data"),
+            num_train_samples=args.num_train_samples if args.num_train_samples != -1 else None,
+            num_test_samples=args.num_test_samples if args.num_test_samples != -1 else None,
+            random_state=seed+int(config["id-num"]),
             sort_by_length=True,
             ascending=False,
             template_args=config["template_args"]
@@ -67,11 +67,13 @@ def main():
 
         # Save results
         for split in splits:
-            if all([os.path.exists(os.path.join(root_save_path,str(config["id"]),f"{split}.{output}.npy")) for output in output_keys]):
+            if all([os.path.exists(os.path.join(root_save_path, config["id"], f"{split}.{output}.npy")) for output in output_keys]):
                 continue
             result = run_model(model, dataset[split], config["labels"], config["batch_size"])
             for output in output_keys:
-                np.save(os.path.join(root_save_path,str(config["id"]),f"{split}.{output}.npy"),result[output])
+                np.save(os.path.join(root_save_path, config["id"], f"{split}.{output}.npy"), result[output])
+        with open(os.path.join(root_save_path, config["id"], "config.json"), "w") as f:
+            json.dump(config,f)
 
 
 def run_model(model, dataset, labels, batch_size = 32):

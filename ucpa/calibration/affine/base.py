@@ -39,7 +39,9 @@ class AffineCalibrator(nn.Module):
         
     def forward(self, logits):
         scores = torch.log_softmax(logits, dim=1)
-        return self.calmodel.calibrate(scores)
+        cal_scores = self.calmodel.calibrate(scores)
+        cal_logprobs = torch.log_softmax(cal_scores, dim=1)
+        return cal_logprobs
 
     def train_calibrator(self, logits, labels):
         scores = torch.log_softmax(logits, dim=1)
