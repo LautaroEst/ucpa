@@ -50,14 +50,13 @@ def main():
         results = collect_results(args.root_directory, args.experiment_name, args.model, metrics, seeds, bootstrap=True, N_bootstrap=args.bootstrap)
     else:
         raise ValueError("Bootstrap number must be positive or 0 (no bootstrap)")
-    results.reset_index(drop=False,inplace=False).to_csv(os.path.join(args.root_directory,"results",args.experiment_name,"results.csv"))
 
     # Number of samples vs metric
     print("Plotting samples vs metrics...")
-    fig = plot_num_samples_vs_metrics(args.root_directory, args.experiment_name, results, args.model, metrics)
+    plot_num_samples_vs_metrics(args.root_directory, args.experiment_name, results, args.model, metrics)
     # Number of shots vs metric
     print("Plotting shots vs metrics...")
-    fig = plot_num_shots_vs_metrics(args.root_directory, args.experiment_name, results, args.model, metrics)
+    plot_num_shots_vs_metrics(args.root_directory, args.experiment_name, results, args.model, metrics)
         
 def collect_datasets(root_directory, experiment_name, model):
     with open(os.path.join(root_directory,f"configs/{experiment_name}/{model}.jsonl"), "r") as f:
@@ -119,7 +118,7 @@ def plot_num_samples_vs_metrics(root_directory, experiment_name, results, model,
         fig.legend(handles, labels, loc='upper center', ncol=len(methods), fontsize=18)
         fig.supxlabel("Number of samples", fontsize=20)
         fig.suptitle(f"Performance vs. Number of Samples for {model} model")
-        fig.savefig(os.path.join(root_directory, "results", experiment_name, model, f"{n}-samples_vs_metric.png"))
+        fig.savefig(os.path.join(root_directory, "results", experiment_name, model, f"performance_vs_samples_{n}-shots.png"))
 
 
 def plot_num_shots_vs_metrics(root_directory, experiment_name, results, model, metrics):
@@ -170,63 +169,8 @@ def plot_num_shots_vs_metrics(root_directory, experiment_name, results, model, m
         fig.legend(handles, labels, loc='upper center', ncol=len(methods), fontsize=18)
         fig.supxlabel("Number of shots", fontsize=20)
         fig.suptitle(f"Performance vs. Number of Shots for {model} model")
-        fig.savefig(os.path.join(root_directory, "results", experiment_name, model, f"{model}_{n}-samples_shots_vs_metric.png"))
+        fig.savefig(os.path.join(root_directory, "results", experiment_name, model, f"{model}_preformance_vs_shots_{n}-samples.png"))
 
-
-# def collect_results(root_directory, experiment_name, models, datasets, metrics, seeds, bootstrap=True, N_bootstrap=None):
-#     results = []
-#     for model in models:
-#         for dataset in datasets:
-#             results_dir = os.path.join(root_directory, "results", experiment_name, dataset, model)
-#             for seed in seeds:
-#                 rs = np.random.RandomState(int(seed))
-#                 for n_shot in os.listdir(os.path.join(results_dir,seed)):
-#                     labels = np.load(os.path.join(results_dir,seed,n_shot,"test.labels.npy"))
-#                     original_logits = np.load(os.path.join(results_dir,seed,n_shot,"test.logits.npy"))
-
-#                     if bootstrap:
-#                         for _ in range(N_bootstrap):
-#                             results_dict = {f"metric:{metric}": compute_metric(original_logits, labels, metric, bootstrap=True, rs=rs) for metric in metrics}
-#                             results_dict["model"] = model
-#                             results_dict["dataset"] = dataset
-#                             results_dict["num_shots"] = int(n_shot.split("_")[0])
-#                             results_dict["method"] = "no_adaptation"
-#                             results_dict["num_samples"] = -1
-#                             results.append(results_dict)
-#                     else:
-#                         results_dict = {f"metric:{metric}": compute_metric(original_logits, labels, metric, bootstrap=False, rs=rs) for metric in metrics}
-#                         results_dict["model"] = model
-#                         results_dict["dataset"] = dataset
-#                         results_dict["method"] = "no_adaptation"
-#                         results_dict["num_shots"] = int(n_shot.split("_")[0])
-#                         results_dict["num_samples"] = -1
-#                         results.append(results_dict)
-                    
-#                     for result in os.listdir(os.path.join(results_dir,seed,n_shot,"calibration")):
-#                         method, num_samples = result.split(".")[1:3]
-#                         result_logits = np.load(os.path.join(results_dir,seed,n_shot,"calibration",result))
-                        
-#                         if bootstrap:
-#                             for _ in range(N_bootstrap):
-#                                 results_dict = {f"metric:{metric}": compute_metric(result_logits, labels, metric, bootstrap=True, rs=rs) for metric in metrics}
-#                                 results_dict["model"] = model
-#                                 results_dict["dataset"] = dataset
-#                                 results_dict["method"] = method
-#                                 results_dict["num_shots"] = int(n_shot.split("_")[0])
-#                                 results_dict["num_samples"] = int(num_samples)
-#                                 results.append(results_dict)
-#                         else:
-#                             results_dict = {f"metric:{metric}": compute_metric(result_logits, labels, metric, bootstrap=False, rs=rs) for metric in metrics}
-#                             results_dict["model"] = model
-#                             results_dict["dataset"] = dataset
-#                             results_dict["method"] = method
-#                             results_dict["num_shots"] = int(n_shot.split("_")[0])
-#                             results_dict["num_samples"] = int(num_samples)
-#                             results.append(results_dict)
-    
-#     results = pd.DataFrame.from_records(results)
-#     results = results.groupby(by=["model","dataset","method","num_shots","num_samples"]).agg({f"metric:{metric}": ["mean","std"] for metric in metrics})
-#     return results
 
 def collect_results(root_directory, experiment_name, model, metrics, seeds, bootstrap=True, N_bootstrap=None):
     results = []

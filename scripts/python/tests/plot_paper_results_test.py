@@ -116,7 +116,7 @@ def plot_num_samples_vs_metrics(root_directory, experiment_name, results, model,
         labels.append(first_label)
         fig.legend(handles, labels, loc='upper center', ncol=len(methods), fontsize=18)
         fig.supxlabel("Number of samples", fontsize=20)
-        fig.savefig(os.path.join(root_directory,"results",experiment_name,f"{model}_{n}-shots_samples_vs_metric.png"))
+        fig.savefig(os.path.join(root_directory,"results_test",experiment_name,f"{model}_{n}-shots_samples_vs_metric.png"))
 
 
 def plot_num_shots_vs_metrics(root_directory, experiment_name, results, model, datasets, metrics):
@@ -166,15 +166,15 @@ def plot_num_shots_vs_metrics(root_directory, experiment_name, results, model, d
         labels.append(first_label)
         fig.legend(handles, labels, loc='upper center', ncol=len(methods), fontsize=18)
         fig.supxlabel("Number of shots", fontsize=20)
-        fig.savefig(os.path.join(root_directory,"results",experiment_name,f"{model}_{n}-samples_shots_vs_metric.png"))
+        fig.savefig(os.path.join(root_directory,"results_test",experiment_name,f"{model}_{n}-samples_shots_vs_metric.png"))
 
 
 def collect_results(root_directory, experiment_name, models, datasets, metrics, bootstrap=True, N_bootstrap=None):
     results = []
     for model in models:
         for dataset in datasets:
-            results_dir = os.path.join(root_directory, "results", experiment_name, dataset, model)
-            for seed in os.listdir(os.path.join(root_directory, "results", experiment_name, dataset, model)):
+            results_dir = os.path.join(root_directory, "results_test", experiment_name, dataset, model)
+            for seed in os.listdir(os.path.join(root_directory, "results_test", experiment_name, dataset, model)):
                 rs = np.random.RandomState(int(seed))
                 for n_shot in os.listdir(os.path.join(results_dir,seed)):
                     labels = np.load(os.path.join(results_dir,seed,n_shot,"test.labels.npy"))
@@ -201,7 +201,7 @@ def collect_results(root_directory, experiment_name, models, datasets, metrics, 
                             results.append(results_dict)
 
     results = pd.DataFrame.from_records(results)
-    results.to_csv(os.path.join(root_directory,"results",experiment_name,"results.csv"),index=False)
+    results.to_csv(os.path.join(root_directory,"results_test",experiment_name,"results.csv"),index=False)
     results = results.groupby(by=["model","dataset","method","num_shots","num_samples"]).agg({f"metric:{metric}": ["mean","std"] for metric in metrics})
     return results
 

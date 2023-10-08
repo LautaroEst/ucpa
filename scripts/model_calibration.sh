@@ -18,8 +18,8 @@ export CUDA_VISIBLE_DEVICES=$(free-gpus.sh 1)
 
 script_name="model_calibration"
 
-model="gpt2-xl"
-# model="gpt2"
+# model="gpt2-xl"
+model="gpt2"
 # model="t5-small"
 # model="google--flan-t5-xxl"
 # model="meta-llama--Llama-2-7b-hf"
@@ -40,7 +40,7 @@ for seed in "${seeds[@]}"; do
     # Create the results directory
     mkdir -p results/$script_name/$model/$seed
 
-    # Run datasets on the model
+    # # Run datasets on the model
     python scripts/python/few_shot.py \
         --root_directory=. \
         --experiment_name=$script_name \

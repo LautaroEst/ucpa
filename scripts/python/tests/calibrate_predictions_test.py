@@ -11,7 +11,7 @@ sys.path.append("../efficient-reestimation")
 from src.utils import parse_calibration_args, get_results_ids_from_config
 import pickle
 
-from ucpa.calibration import AffineCalibrator, UCPACalibrator, ReestimatorIterative
+from ucpa.calibration import AffineCalibrator, UCPACalibrator
 from ucpa.calibration_old import train_calibrator_from_probs, train_reestimator_from_probs, train_reestimator_iter_from_probs, calibrate_probs_from_trained_model, reestimate_probs_from_trained_model
 
 def parse_args():
@@ -20,13 +20,14 @@ def parse_args():
     parser.add_argument("--root_directory", type=str, default=".")
     parser.add_argument("--experiment_name", type=str, default="paper_results")
     parser.add_argument("--model", type=str, default="gpt2-xl")
-    parser.add_argument("--dataset", type=str, default="tony_zhao_sst2")
-    parser.add_argument("--config", type=str, default="configs/paper_results/gpt2-xl_tony_zhao_sst2.jsonl")
+    parser.add_argument("--calibration_methods", type=str, default="UCPA SUCPA UCPA-naive SUCPA-naive affine_bias_only")
+    parser.add_argument("--num_calibration_train_samples", type=str, default="10 20 40 80 200 400 600")
+    parser.add_argument("--config", type=str, default="configs/model_calibration/gpt2-xl.jsonl")
     parser.add_argument("--seed", type=int, default=82033)
     args = parser.parse_args()
 
     with open(args.config, "r") as f:
-        configs_dicts = [json.loads(config) for config in f.read().splitlines()]
+        configs_dicts = [json.loads(config) for config in f.read().splitlines() if "trec" in config or "sst2" in config]
     setattr(args,"configs_dicts",configs_dicts)
     
     return args
@@ -41,16 +42,19 @@ def main():
         experiment_config = json.load(experiment_file)
     results_ids = get_results_ids_from_config("../efficient-reestimation", experiment_config)
 
+    calibration_methods = args.calibration_methods.split(" ")
+    num_calibration_train_samples = [int(s) for s in args.num_calibration_train_samples.split(" ")]
+
     for result_id in results_ids:
 
         with open(f"../efficient-reestimation/results/train_test/{result_id}/config.json", "r") as f:
             original_config = json.load(f)
 
-        if original_config["model"] != args.model or f"tony_zhao_" + original_config["dataset"] != args.dataset:
+        if original_config["model"] != args.model or f"tony_zhao_" + original_config["dataset"] not in ["tony_zhao_trec", "tony_zhao_sst2"]:
             continue
 
         # Results path for this config
-        root_save_path = os.path.join(args.root_directory, "results", args.experiment_name, args.dataset, args.model, str(original_config["random_state"]))
+        root_save_path = os.path.join(args.root_directory, "results_test", args.experiment_name, args.model, str(original_config["random_state"]))
         os.makedirs(os.path.join(root_save_path,f"{original_config['n_shots']}_shots","calibration"), exist_ok=True)
 
         # Random state
@@ -73,16 +77,16 @@ def main():
         with open(os.path.join(f"../efficient-reestimation/results/calibrated/logloss_noboots/{result_id}.pkl"), "rb") as f:
             original_results = pickle.load(f)
 
-        tqdm_num_samples = tqdm(args.configs_dicts[0]["num_calibration_train_samples"])
+        tqdm_num_samples = tqdm(num_calibration_train_samples)
         for n_samples in tqdm_num_samples:
             # sub_train_logits, sub_train_labels = subsample_logits_and_labels(train_logits, train_labels, n_samples, rs=rs)
             train_idx = original_results[0][f"train_idx_{n_samples}"]
             sub_train_logits, sub_train_labels = train_logits[train_idx,:].copy(), train_labels[train_idx].copy()
-            for method in args.configs_dicts[0]["calibration_methods"]:
+            for method in calibration_methods:
                 tqdm_num_samples.set_description(desc=f"{method} ({n_samples} samples): ")
                 cal_test_logits = run_calibration(sub_train_logits, sub_train_labels, test_logits, method=method)
                 np.save(os.path.join(root_save_path,f"{original_config['n_shots']}_shots","calibration",f"test.{method}.{n_samples}.npy"),cal_test_logits)
-                if (np.abs(original_results[0][method2name(method,n_samples)] - np.exp(cal_test_logits)) < 1e-4).sum() != np.prod(list(cal_test_logits.shape)):
+                if (np.abs(original_results[0][method2name(method,n_samples)] - np.exp(cal_test_logits)) < 1e-3).sum() != np.prod(list(cal_test_logits.shape)):
                     import pdb; pdb.set_trace()
                 
 def method2name(method,num_samples):

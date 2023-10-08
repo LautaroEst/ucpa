@@ -47,17 +47,16 @@ def main():
         train_logits = np.load(os.path.join(root_save_path,str(config["id"]),f"train.logits.npy"))
         train_labels = np.load(os.path.join(root_save_path,str(config["id"]),f"train.labels.npy"))
         test_logits = np.load(os.path.join(root_save_path,str(config["id"]),f"test.logits.npy"))
-        test_labels = np.load(os.path.join(root_save_path,str(config["id"]),f"test.labels.npy"))        
         
         # Train samples:
         train_samples = tqdm(num_calibration_train_samples)
         for n_samples in train_samples:
             sub_train_logits, sub_train_labels = subsample_logits_and_labels(train_logits, train_labels, n_samples, rs=rs)
             for method in calibration_methods:
-                train_samples.set_description(desc=f"{method} ({n_samples} samples): ")
+                train_samples.set_description(desc=f"{method} ({n_samples} samples)")
                 cal_test_logits = run_calibration(sub_train_logits, sub_train_labels, test_logits, method=method)
                 np.save(os.path.join(root_save_path,str(config["id"]),"calibration",f"test.{method}.{n_samples}.npy"),cal_test_logits)
-
+            train_samples.set_description(desc=config["id"])
                 
 def subsample_logits_and_labels(logits, labels, n_samples, rs):
     idx = rs.choice(len(labels), n_samples, replace=False)
@@ -101,6 +100,8 @@ def run_calibration(train_logits, train_labels, test_logits, method="UCPA"):
     
     cal_logits = cal_logits.numpy()
     return cal_logits        
+
+
 
 if __name__ == "__main__":
     main()
