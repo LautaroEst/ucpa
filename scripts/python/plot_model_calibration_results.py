@@ -169,7 +169,7 @@ def plot_num_shots_vs_metrics(root_directory, experiment_name, results, model, m
         fig.legend(handles, labels, loc='upper center', ncol=len(methods), fontsize=18)
         fig.supxlabel("Number of shots", fontsize=20)
         fig.suptitle(f"Performance vs. Number of Shots for {model} model")
-        fig.savefig(os.path.join(root_directory, "results", experiment_name, model, f"{model}_preformance_vs_shots_{n}-samples.png"))
+        fig.savefig(os.path.join(root_directory, "results", experiment_name, model, f"performance_vs_shots_{n}-samples.png"))
 
 
 def collect_results(root_directory, experiment_name, model, metrics, seeds, bootstrap=True, N_bootstrap=None):
@@ -198,7 +198,7 @@ def collect_results(root_directory, experiment_name, model, metrics, seeds, boot
                     results_dict = {f"metric:{metric}": compute_metric(result_logits, labels, metric, bootstrap_idx=bi) for metric in metrics}
                     results_dict["dataset"] = config["dataset"]
                     results_dict["method"] = method
-                    results_dict["num_shots"] = config["n_shots"]
+                    results_dict["num_shots"] = config["template_args"]["n_shots"]
                     results_dict["num_samples"] = int(num_samples)
                     results_dict["random_state"] = seed
                     results_dict["bootstrap_iter"] = i

@@ -19,12 +19,15 @@ export CUDA_VISIBLE_DEVICES=$(free-gpus.sh 1)
 script_name="model_calibration"
 
 # model="gpt2-xl"
-model="gpt2"
+# model="gpt2"
+# model="google--flan-t5-small"
+model="google--flan-t5-xl"
 # model="t5-small"
 # model="google--flan-t5-xxl"
 # model="meta-llama--Llama-2-7b-hf"
 
-declare -a seeds=(82033 12782 1263 987 12299 9203 4 20343 43 92374)
+# declare -a seeds=(82033 12782 1263 987 12299 9203 4 20343 43 92374)
+declare -a seeds=(82033 12782 1263 987 12299)
 declare -a metrics=("norm_cross_entropy" "error_rate")
 declare -a calibration_methods=("UCPA" "SUCPA" "UCPA-naive" "SUCPA-naive" "affine_bias_only")
 declare -a num_calibration_train_samples=(10 20 40 80 200 400 600)
@@ -41,7 +44,7 @@ for seed in "${seeds[@]}"; do
     mkdir -p results/$script_name/$model/$seed
 
     # # Run datasets on the model
-    python scripts/python/few_shot.py \
+    python scripts/python/run_prompts_on_model.py \
         --root_directory=. \
         --experiment_name=$script_name \
         --model=$model \

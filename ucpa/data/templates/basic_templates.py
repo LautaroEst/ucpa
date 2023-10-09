@@ -16,7 +16,9 @@ class SimpleQuerySubstitutionPrompt:
 class PrefacePlusShotsPrompt:
     """ Prompt template consisting on a preface followed by n shots (supervised examples). """
 
-    def __init__(self, preface, sentences_shots=None, labels_shots=None, query_prefix="", label_prefix="", prefix_sample_separator=" ", query_label_separator="\n", shot_separator="\n\n"):
+    def __init__(self, preface, shots, query_prefix="", label_prefix="", prefix_sample_separator=" ", query_label_separator="\n", shot_separator="\n\n"):
+        sentences_shots = shots["sentences"]
+        labels_shots = shots["labels"]
         if sentences_shots is None and labels_shots is None:
             shots_str = ""
         elif sentences_shots is not None and labels_shots is not None:
@@ -34,6 +36,7 @@ class PrefacePlusShotsPrompt:
         self.prefix_sample_separator = prefix_sample_separator
         self.query_label_separator = query_label_separator
         self.shot_separator = shot_separator
+        self.shots = shots
 
     def construct_prompt(self, query):
         return f"{self.preface}{self.shots_str}{self.query_prefix}{self.prefix_sample_separator}{query}{self.query_label_separator}{self.label_prefix}"

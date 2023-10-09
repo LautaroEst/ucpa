@@ -8,7 +8,7 @@ from .templates.utils import load_template
 class BaseClassificationDatasetDict:
     """ Base class for classification datasets."""
 
-    def __init__(self, data_dir, n_shots=0, num_train_samples=None, num_test_samples=None, random_state=None, sort_by_length=True, ascending=False, template_args=None):
+    def __init__(self, data_dir, num_train_samples=None, num_test_samples=None, random_state=None, sort_by_length=True, ascending=False, template_args=None):
         """ Initialize dataset and load data. """
         
         data, self.labels_dict = self._load_data(data_dir)
@@ -17,16 +17,15 @@ class BaseClassificationDatasetDict:
         self.random_state = random_state
         self._rs = np.random.RandomState(random_state)
 
-        # Remove shots from data
-        data, ids_shots, sentences_shots, labels_idx = self._get_random_shots(data, n_shots)
-        labels_shots = [self.labels_dict[idx] for idx in labels_idx] if labels_idx is not None else None
-        self.shots = ShotsContainer(ids_shots, sentences_shots, labels_shots)
-
         # Load template
         if template_args["name"] == "preface_plus_shots":
+            # Remove shots from data
             template_args = deepcopy(template_args)
-            template_args["sentences_shots"] = self.shots["sentences"]
-            template_args["labels_shots"] = self.shots["labels"]
+            n_shots = template_args.pop("n_shots")
+            data, ids_shots, sentences_shots, labels_idx = self._get_random_shots(data, n_shots)
+            labels_shots = [self.labels_dict[idx] for idx in labels_idx] if labels_idx is not None else None
+            # Add shots to template_args dict
+            template_args["shots"] = ShotsContainer(ids_shots, sentences_shots, labels_shots)
         self.template = load_template(**template_args)
 
         # Subsample data if needed
