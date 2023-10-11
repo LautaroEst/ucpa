@@ -1,3 +1,2 @@
 from .loaders import SequentialLoaderWithDataCollator
-from .datasets.utils import load_dataset
-from .base import ClassificationDataSplit, load_template
+from .utils import load_dataset, load_template

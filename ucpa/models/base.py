@@ -210,7 +210,7 @@ class LanguageModelClassifier(pl.LightningModule):
         _, logits = self(batch["encoded_prompt"], batch["encoded_labels"])
         logits = logits.cpu().numpy()
         labels = batch["label"].cpu().numpy()
-        ids = batch["id"]
+        ids = batch["original_id"]
         prompts = batch["prompt"]
         return ids, prompts, logits, labels
     

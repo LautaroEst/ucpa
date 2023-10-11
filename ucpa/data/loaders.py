@@ -1,5 +1,4 @@
 
-import re
 import torch
 from torch.utils.data import DataLoader
 
@@ -16,16 +15,16 @@ class DataCollator:
 
         ids, prompts, labels = [], [], []
         for sample in batch:
-            ids.append(sample["id"])
+            ids.append(sample["original_id"])
             prompts.append(self.template.construct_prompt(self.tokenizer.convert_tokens_to_string(self.tokenizer.tokenize(sample["sentence"])[:self.max_query_tokens])))
             labels.append(sample["label"])
 
         return {
-            "id": ids,
+            "original_id": ids,
             "prompt": prompts,
             "encoded_prompt": self.tokenizer(prompts, return_tensors="pt", padding=True),
             "label": torch.tensor(labels),
-            "encoded_labels": {idx: {k: v.repeat(len(prompts),1) for k, v in self.tokenizer([f" {label}"], return_tensors="pt", padding=True).items()} for idx, label in enumerate(self.labels)}
+            "encoded_labels": {idx: {k: v.repeat(len(prompts),1) for k, v in self.tokenizer([f"{self.template.prefix_sample_separator}{label}"], return_tensors="pt", padding=True).items()} for idx, label in enumerate(self.labels)}
         }
 
 class SequentialLoaderWithDataCollator(DataLoader):

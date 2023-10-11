@@ -1,0 +1,10 @@
+[
+    {
+        "id": "trec_test_0_shot-trec_train_queries_with_prompt_0_shot-all_methods",
+        "methods": ["UCPA", "SUCPA"],
+        "train": "{root_directory}/results/predict_with_model/gpt2/{seed}/trec_train_queries_with_prompt_0_shot",
+        "test": "{root_directory}/results/predict_with_model/gpt2/{seed}/trec_test_0_shot",
+        "num_train_samples": [10, 20, 40, 80, 200, 400, 600],
+        "random_state": 0
+    }
+]
