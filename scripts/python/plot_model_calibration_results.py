@@ -224,7 +224,7 @@ def compute_metric(logits, labels, metric="cross_entropy", bootstrap_idx=None):
     elif metric == "norm_cross_entropy":
         score = F.cross_entropy(logits, labels, reduction="mean")
         priors = torch.bincount(labels,minlength=logits.shape[1]) / logits.shape[0]
-        dummy_score = - (priors * torch.log(priors)).sum()
+        dummy_score = F.cross_entropy(priors.repeat(logits.shape[0],1), labels)
         score = score / dummy_score
     elif metric == "accuracy":
         score = torch.mean((torch.max(logits,dim=1).indices == labels).type(torch.float))

@@ -1,0 +1,94 @@
+{
+    "id": "trec_0_shot", 
+    "id-num": 0,
+    "dataset": "tony_zhao_trec",
+    "evaluate_on": "test",
+    "prompt": {
+        "template": "template name",
+        "template_args": {
+            "arg1": "value1",
+            "arg2": "value2",
+        },
+    },
+    "batch_size": 32
+}
+{
+    "id": "trec_train_queries_with_prompt", 
+    "id-num": 1,
+    "dataset": "tony_zhao_trec",
+    "evaluate_on": "train",
+    "prompt": {
+        "template": "template name",
+        "template_args": {
+            "arg1": "value1",
+            "arg2": "value2",
+        },
+    },
+    "batch_size": 32,
+    "number_of_samples": 600
+}
+{
+    "id": "train_content_free", 
+    "id-num": 2,
+    "dataset": "mask_na_empty",
+    "evaluate_on": "train",
+    "prompt": {
+        "template": "Query substitution",
+        "template_args": {
+            "preface": "Classify...",
+            "arg2": "value2",
+        },
+    },
+    "batch_size": 32,
+    "number_of_samples": null
+}
+{
+    "id": "trec_train_random_words", 
+    "id-num": 3,
+    "dataset": "tony_zhao_trec",
+    "evaluate_on": "train",
+    "prompt": {
+        "template": "Random words",
+        "template_args": {
+            "arg1": "value1",
+            "arg2": "value2",
+        },
+    },
+    "batch_size": 32,
+    "number_of_samples": 600
+}
+
+
+--results
+    --model_calibration
+        --model1_name
+            --run_prompts_on_model
+                --seed1
+                --seed2
+                --seed3
+            --calibrate_predictions
+                --seed1
+                --seed2
+                --seed3
+            --plot_model_calibration_results
+                --plot1
+                --plot2
+                --plot3
+                --plot4
+                ...
+        --model2_name
+            --run_prompts_on_model
+                --seed1
+                --seed2
+                --seed3
+            --calibrate_predictions
+                --seed1
+                --seed2
+                --seed3
+            --plot_model_calibration_results
+                --plot1
+                --plot2
+                --plot3
+                --plot4
+                ...
+    --finetunning
