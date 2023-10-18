@@ -54,7 +54,7 @@ def main():
             if config["template_args"]["name"] == "preface_plus_shots":
                 if "sample_shots_from" in config["template_args"]:
                     config["template_args"]["sample_shots_from"]["data_dir"] = data_dir
-                    config["template_args"]["sample_shots_from"]["random_state"] += seed
+                    config["template_args"]["sample_shots_from"]["random_state"] = seed+config["random_state"]
             template = load_template(**config["template_args"])
 
             # Create dataset

@@ -1,11 +1,11 @@
 #!/bin/bash
 #
 #$ -S /bin/bash
-#$ -N predict_with_model
-#$ -o /mnt/matylda3/qestienne/projects/ucpa/logs/predict_with_model_out.log
-#$ -e /mnt/matylda3/qestienne/projects/ucpa/logs/predict_with_model_err.log
+#$ -N gpt2
+#$ -o /mnt/matylda3/qestienne/projects/ucpa/logs/gpt2_out.log
+#$ -e /mnt/matylda3/qestienne/projects/ucpa/logs/gpt2_err.log
 #$ -q long.q
-#$ -l matylda3=0.5,gpu=1,gpu_ram=48G,ram_free=64G,mem_free=30G
+#$ -l matylda3=0.5,gpu=1,gpu_ram=16G,ram_free=64G,mem_free=30G
 #
 
 # Configure environment

@@ -12,7 +12,7 @@
             "prefix_sample_separator": " "
         },
         "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_trec_test_1_shot", 
@@ -35,7 +35,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_trec_test_4_shot", 
@@ -58,7 +58,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_trec_test_8_shot", 
@@ -81,7 +81,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_trec_train_queries_with_prompt_0_shot",
@@ -96,7 +96,7 @@
             "prefix_sample_separator": " "
         },
         "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_trec_train_queries_with_prompt_1_shot", 
@@ -119,7 +119,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_trec_train_queries_with_prompt_4_shot", 
@@ -142,7 +142,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_trec_train_queries_with_prompt_8_shot", 
@@ -165,7 +165,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_sst2_test_0_shot", 
@@ -180,7 +180,7 @@
             "prefix_sample_separator": " "
         },
         "labels": ["Negative", "Positive"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_sst2_test_1_shot", 
@@ -203,7 +203,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Negative", "Positive"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_sst2_test_4_shot", 
@@ -226,7 +226,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Negative", "Positive"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_sst2_test_8_shot", 
@@ -249,7 +249,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Negative", "Positive"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_sst2_train_queries_with_prompt_0_shot",
@@ -264,7 +264,7 @@
             "prefix_sample_separator": " "
         },
         "labels": ["Negative", "Positive"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_sst2_train_queries_with_prompt_1_shot", 
@@ -287,7 +287,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Negative", "Positive"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_sst2_train_queries_with_prompt_4_shot", 
@@ -310,7 +310,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Negative", "Positive"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_sst2_train_queries_with_prompt_8_shot", 
@@ -333,7 +333,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Negative", "Positive"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_agnews_test_0_shot", 
@@ -348,7 +348,7 @@
             "prefix_sample_separator": " "
         },
         "labels": ["World", "Sports", "Business", "Technology"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_agnews_test_1_shot", 
@@ -371,7 +371,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["World", "Sports", "Business", "Technology"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_agnews_test_4_shot", 
@@ -394,7 +394,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["World", "Sports", "Business", "Technology"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_agnews_test_8_shot", 
@@ -417,7 +417,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["World", "Sports", "Business", "Technology"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_agnews_train_queries_with_prompt_0_shot",
@@ -432,7 +432,7 @@
             "prefix_sample_separator": " "
         },
         "labels": ["World", "Sports", "Business", "Technology"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_agnews_train_queries_with_prompt_1_shot", 
@@ -455,7 +455,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["World", "Sports", "Business", "Technology"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_agnews_train_queries_with_prompt_4_shot", 
@@ -478,7 +478,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["World", "Sports", "Business", "Technology"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_agnews_train_queries_with_prompt_8_shot", 
@@ -501,7 +501,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["World", "Sports", "Business", "Technology"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_dbpedia_test_0_shot", 
@@ -516,7 +516,7 @@
             "prefix_sample_separator": " "
         },
         "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_dbpedia_test_1_shot", 
@@ -539,7 +539,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_dbpedia_test_4_shot", 
@@ -562,7 +562,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_dbpedia_test_8_shot", 
@@ -585,7 +585,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_dbpedia_train_queries_with_prompt_0_shot",
@@ -600,7 +600,7 @@
             "prefix_sample_separator": " "
         },
         "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_dbpedia_train_queries_with_prompt_1_shot", 
@@ -623,7 +623,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_dbpedia_train_queries_with_prompt_4_shot", 
@@ -646,7 +646,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
-        "batch_size": 32
+        "batch_size": 2
     },
     {
         "id": "tony_zhao_dbpedia_train_queries_with_prompt_8_shot", 
@@ -669,7 +669,7 @@
             "shot_separator": "\n\n"
         },
         "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
-        "batch_size": 32
+        "batch_size": 2
     }
 ]
 

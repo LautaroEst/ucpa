@@ -1,10 +1,66 @@
 [
     {
-        "id": "trec_test_0_shot-trec_train_queries_with_prompt_0_shot-all_methods",
-        "methods": ["UCPA", "SUCPA"],
-        "train": "{root_directory}/results/predict_with_model/gpt2/{seed}/trec_train_queries_with_prompt_0_shot",
-        "test": "{root_directory}/results/predict_with_model/gpt2/{seed}/trec_test_0_shot",
+        "id": "tony_zhao_trec_test_0_shot-tony_zhao_trec_train_queries_with_prompt_0_shot-all_methods",
+        "methods": ["UCPA", "SUCPA", "UCPA-naive", "SUCPA-naive", "affine_bias_only"],
+        "train": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_trec_train_queries_with_prompt_0_shot",
+        "test": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_trec_test_0_shot",
         "num_train_samples": [10, 20, 40, 80, 200, 400, 600],
         "random_state": 0
+    },
+    {
+        "id": "tony_zhao_trec_test_1_shot-tony_zhao_trec_train_queries_with_prompt_1_shot-all_methods",
+        "methods": ["UCPA", "SUCPA", "UCPA-naive", "SUCPA-naive", "affine_bias_only"],
+        "train": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_trec_train_queries_with_prompt_1_shot",
+        "test": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_trec_test_1_shot",
+        "num_train_samples": [10, 20, 40, 80, 200, 400, 600],
+        "random_state": 1
+    },
+    {
+        "id": "tony_zhao_trec_test_4_shot-tony_zhao_trec_train_queries_with_prompt_4_shot-all_methods",
+        "methods": ["UCPA", "SUCPA", "UCPA-naive", "SUCPA-naive", "affine_bias_only"],
+        "train": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_trec_train_queries_with_prompt_4_shot",
+        "test": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_trec_test_4_shot",
+        "num_train_samples": [10, 20, 40, 80, 200, 400, 600],
+        "random_state": 2
+    },
+    {
+        "id": "tony_zhao_trec_test_8_shot-tony_zhao_trec_train_queries_with_prompt_8_shot-all_methods",
+        "methods": ["UCPA", "SUCPA", "UCPA-naive", "SUCPA-naive", "affine_bias_only"],
+        "train": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_trec_train_queries_with_prompt_8_shot",
+        "test": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_trec_test_8_shot",
+        "num_train_samples": [10, 20, 40, 80, 200, 400, 600],
+        "random_state": 3
+    },
+    {
+        "id": "tony_zhao_sst2_test_0_shot-tony_zhao_sst2_train_queries_with_prompt_0_shot-all_methods",
+        "methods": ["UCPA", "SUCPA", "UCPA-naive", "SUCPA-naive", "affine_bias_only"],
+        "train": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_sst2_train_queries_with_prompt_0_shot",
+        "test": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_sst2_test_0_shot",
+        "num_train_samples": [10, 20, 40, 80, 200, 400, 600],
+        "random_state": 0
+    },
+    {
+        "id": "tony_zhao_sst2_test_1_shot-tony_zhao_sst2_train_queries_with_prompt_1_shot-all_methods",
+        "methods": ["UCPA", "SUCPA", "UCPA-naive", "SUCPA-naive", "affine_bias_only"],
+        "train": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_sst2_train_queries_with_prompt_1_shot",
+        "test": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_sst2_test_1_shot",
+        "num_train_samples": [10, 20, 40, 80, 200, 400, 600],
+        "random_state": 1
+    },
+    {
+        "id": "tony_zhao_sst2_test_4_shot-tony_zhao_sst2_train_queries_with_prompt_4_shot-all_methods",
+        "methods": ["UCPA", "SUCPA", "UCPA-naive", "SUCPA-naive", "affine_bias_only"],
+        "train": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_sst2_train_queries_with_prompt_4_shot",
+        "test": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_sst2_test_4_shot",
+        "num_train_samples": [10, 20, 40, 80, 200, 400, 600],
+        "random_state": 2
+    },
+    {
+        "id": "tony_zhao_sst2_test_8_shot-tony_zhao_sst2_train_queries_with_prompt_8_shot-all_methods",
+        "methods": ["UCPA", "SUCPA", "UCPA-naive", "SUCPA-naive", "affine_bias_only"],
+        "train": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_sst2_train_queries_with_prompt_8_shot",
+        "test": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_sst2_test_8_shot",
+        "num_train_samples": [10, 20, 40, 80, 200, 400, 600],
+        "random_state": 3
     }
 ]

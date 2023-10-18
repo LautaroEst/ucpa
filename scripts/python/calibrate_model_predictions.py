@@ -54,7 +54,10 @@ def main():
             np.save(os.path.join(root_save_path,str(config["id"]),f"test.labels.original.npy"),test_labels)
 
             # Train samples:
-            train_samples = tqdm(config["num_train_samples"])
+            if config["num_train_samples"] is None:
+                train_samples = tqdm([len(train_labels)])
+            else:
+                train_samples = tqdm(config["num_train_samples"])
             for n_samples in train_samples:
                 train_idx = rs.choice(len(train_labels), n_samples, replace=False)
                 sub_train_logits = train_logits[train_idx,:].copy()
@@ -63,7 +66,7 @@ def main():
                     train_samples.set_description(desc=f"{method} ({n_samples} samples)")
                     cal_test_logits = run_calibration(sub_train_logits, sub_train_labels, test_logits, method=method)
                     np.save(os.path.join(root_save_path,str(config["id"]),f"test.{method}.{n_samples}.npy"),cal_test_logits)
-                np.save(os.path.join(root_save_path,str(config["id"]),"train.idx.original.npy"),train_idx)
+                np.save(os.path.join(root_save_path,str(config["id"]),f"train.idx.{n_samples}.npy"),train_idx)
                 train_samples.set_description(desc=config["id"])
             
             # Save config
