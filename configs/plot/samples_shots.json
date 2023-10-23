@@ -4,10 +4,12 @@
         "plot": "metrics_vs_samples",
         "logits_path": "{root_directory}/results/calibrate_predictions/{model}/{seed}/{dataset}_test_{num_shots}_shot-{dataset}_train_queries_with_prompt_{num_shots}_shot-all_methods/test.{method}.{num_samples}.npy",
         "labels_path": "{root_directory}/results/calibrate_predictions/{model}/{seed}/{dataset}_test_{num_shots}_shot-{dataset}_train_queries_with_prompt_{num_shots}_shot-all_methods/test.labels.original.npy",
-        "models": ["gpt2"],
+        "models": ["gpt2", "gpt2-xl", "meta-llama--Llama-2-7b-hf"],
         "datasets": {
             "tony_zhao_trec": "TREC",
-            "tony_zhao_sst2": "SST-2"
+            "tony_zhao_sst2": "SST-2",
+            "tony_zhao_agnews": "AGNews",
+            "tony_zhao_dbpedia": "DBPedia"
         },
         "num_samples": [10, 20, 40, 80, 200, 400, 600],
         "num_shots": [0, 1, 4, 8],
@@ -20,7 +22,7 @@
             "SUCPA": {"color": "tab:red", "linestyle": "--", "label": "SUCPA", "linewidth": 2, "marker": ".", "markersize": 10}
         },
         "metrics": {
-            "norm_cross_entropy": "Normalized Cross-Entropy",
+            "norm_cross_entropy": "Normalized\nCross-Entropy",
             "error_rate": "Error Rate"
         },
         "bootstrap": 100,
@@ -31,10 +33,12 @@
         "plot": "metrics_vs_shots",
         "logits_path": "{root_directory}/results/calibrate_predictions/{model}/{seed}/{dataset}_test_{num_shots}_shot-{dataset}_train_queries_with_prompt_{num_shots}_shot-all_methods/test.{method}.{num_samples}.npy",
         "labels_path": "{root_directory}/results/calibrate_predictions/{model}/{seed}/{dataset}_test_{num_shots}_shot-{dataset}_train_queries_with_prompt_{num_shots}_shot-all_methods/test.labels.original.npy",
-        "models": ["gpt2"],
+        "models": ["gpt2", "gpt2-xl", "meta-llama--Llama-2-7b-hf"],
         "datasets": {
             "tony_zhao_trec": "TREC",
-            "tony_zhao_sst2": "SST-2"
+            "tony_zhao_sst2": "SST-2",
+            "tony_zhao_agnews": "AGNews",
+            "tony_zhao_dbpedia": "DBPedia"
         },
         "num_samples": [10, 20, 40, 80, 200, 400, 600],
         "num_shots": [0, 1, 4, 8],
@@ -47,7 +51,7 @@
             "SUCPA": {"color": "tab:red", "linestyle": "--", "label": "SUCPA", "linewidth": 2, "marker": ".", "markersize": 10}
         },
         "metrics": {
-            "norm_cross_entropy": "Normalized Cross-Entropy",
+            "norm_cross_entropy": "Normalized\nCross-Entropy",
             "error_rate": "Error Rate"
         },
         "bootstrap": 100,

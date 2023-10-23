@@ -19,12 +19,12 @@ export CUDA_VISIBLE_DEVICES=$(free-gpus.sh 1)
 script_name="calibrate_predictions"
 
 # model="gpt2-xl"
-model="gpt2"
+# model="gpt2"
 # model="google--flan-t5-small"
 # model="google--flan-t5-xl"
 # model="t5-small"
 # model="google--flan-t5-xxl"
-# model="meta-llama--Llama-2-7b-hf"
+model="meta-llama--Llama-2-7b-hf"
 
 declare -a seeds=(82033 12782 1263 987 12299)
 

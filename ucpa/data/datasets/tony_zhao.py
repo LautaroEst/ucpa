@@ -108,9 +108,9 @@ class TonyZhaoDBPEDIA(ClassificationDataset):
         ##########################################################
         if split == "test":
             rs = np.random.RandomState(1)
-            test_idx = rs.permutation(len(test_sentences))[:1000]
-            test_sentences = [test_sentences[i] for i in test_idx]
-            test_labels = [test_labels[i] for i in test_idx]
+            idx = rs.permutation(len(sentences))[:1000]
+            sentences = [sentences[i] for i in idx]
+            labels = [labels[i] for i in idx]
         ##########################################################
 
         data = {

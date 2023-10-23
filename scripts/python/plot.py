@@ -30,10 +30,6 @@ def main():
 
     for config in args.configs_dicts:
 
-        # Results directory:
-        results_dir = os.path.join(args.root_directory, "results", args.experiment_name, config["id"])
-        os.makedirs(results_dir, exist_ok=True)
-
         plot_type = config.pop("plot")
         if plot_type == "metrics_vs_samples":
             plot_metrics_vs_samples(args.root_directory,seeds=seeds,**config)
@@ -140,6 +136,7 @@ def plot_metrics_vs_samples(
             fig.legend(handles, labels, loc='upper center', ncol=len(methods), fontsize=18)
             fig.supxlabel("Number of samples", fontsize=20)
             fig.savefig(f"results/plot/{id}-model_{model}-n_shots_{n_shots}")
+            plt.close(fig)
 
 
 def plot_metrics_vs_shots(
@@ -238,6 +235,7 @@ def plot_metrics_vs_shots(
             fig.legend(handles, labels, loc='upper center', ncol=len(methods), fontsize=18)
             fig.supxlabel("Number of shots", fontsize=20)
             fig.savefig(f"results/plot/{id}-model_{model}-n_samples_{n_samples}")
+            plt.close(fig)
 
 
 def compute_metric(logits, labels, metric="cross_entropy", bootstrap_idx=None):
