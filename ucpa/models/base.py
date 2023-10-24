@@ -159,22 +159,8 @@ class PromptEncoder(nn.Module):
 
 class LanguageModelClassifier(pl.LightningModule):
 
-    def __init__(self, model_name):
+    def __init__(self, base_model, tokenizer):
         super().__init__()
-
-        # Load pretrained tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
-
-        # Load pretrained model
-        if model_name in SUPPORTED_MODELS["decoder_only"]:
-            base_model = AutoModelForCausalLM.from_pretrained(model_name, local_files_only=True)
-            base_model.config.pad_token_id = base_model.config.eos_token_id
-            tokenizer.padding_side = "left"
-            tokenizer.pad_token = tokenizer.eos_token
-        elif model_name in SUPPORTED_MODELS["encoder_decoder"]:
-            base_model = AutoModelForSeq2SeqLM.from_pretrained(model_name, local_files_only=True)
-        else:
-            raise ValueError(f"Model {model_name} not supported.")
 
         self.prompt_encoder = PromptEncoder(base_model, tokenizer)
         self.labels_decoder = LabelsDecoder(base_model, tokenizer)
@@ -214,5 +200,31 @@ class LanguageModelClassifier(pl.LightningModule):
         prompts = batch["prompt"]
         return ids, prompts, logits, labels
     
+    @classmethod
+    def from_base_model(cls, base_model, model_name):
+
+        # Load pretrained tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
+
+        return cls(base_model, tokenizer)
+
+    @classmethod
+    def from_model_name(cls, model_name):
+
+        # Load pretrained tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
+
+        # Load pretrained model
+        if model_name in SUPPORTED_MODELS["decoder_only"]:
+            base_model = AutoModelForCausalLM.from_pretrained(model_name, local_files_only=True)
+            base_model.config.pad_token_id = base_model.config.eos_token_id
+            tokenizer.padding_side = "left"
+            tokenizer.pad_token = tokenizer.eos_token
+        elif model_name in SUPPORTED_MODELS["encoder_decoder"]:
+            base_model = AutoModelForSeq2SeqLM.from_pretrained(model_name, local_files_only=True)
+        else:
+            raise ValueError(f"Model {model_name} not supported.")
+        
+        return cls(base_model, tokenizer)
 
         

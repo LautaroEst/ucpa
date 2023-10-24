@@ -32,7 +32,7 @@ def main():
 
     # Instantiate base model
     print("Loading base model...")
-    model = LanguageModelClassifier(args.model.replace("--","/"))
+    model = LanguageModelClassifier.from_model_name(args.model.replace("--","/"))
 
     for seed in seeds:
         
