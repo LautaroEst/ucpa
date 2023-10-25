@@ -5,6 +5,11 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
+from ucpa.data import LanguageModelTextLoader, SequentialLoaderWithDataCollator, BasicContainer, LanguageModelDataset
+from ucpa.models import LanguageModelClassifier, LanguageModel
+
+import lightning.pytorch as pl
+
 
 def parse_args():
     """ Parse command line arguments."""
@@ -45,7 +50,10 @@ def main():
             train_labels = np.load(os.path.join(config["train"].format(root_directory=args.root_directory,seed=seed),"labels.npy"))
             test_prompts = np.load(os.path.join(config["test"].format(root_directory=args.root_directory,seed=seed),"prompts.npy"))
             test_labels = np.load(os.path.join(config["test"].format(root_directory=args.root_directory,seed=seed),"labels.npy"))
-            
+
+            with open(os.path.join(config["test"].format(root_directory=args.root_directory,seed=seed),"config.json"), "r") as f:
+                test_config = json.load(f)
+
             # Save them in the new results directory
             np.save(os.path.join(root_save_path,str(config["id"]),f"train.labels.original.npy"),train_labels)
             np.save(os.path.join(root_save_path,str(config["id"]),f"test.labels.original.npy"),test_labels)
@@ -59,10 +67,17 @@ def main():
                 hyperparams = config["num_train_samples"][n_samples]
                 n_samples = int(n_samples)
                 train_idx = rs.choice(len(train_labels), n_samples, replace=False)
-                sub_train_prompts = train_prompts[train_idx,:].copy()
-                sub_train_labels = train_labels[train_idx].copy()
+                sub_train_prompts = train_prompts[train_idx].copy()
                 train_samples.set_description(desc=f"{n_samples} samples")
-                cal_test_logits = run_finetunning(sub_train_prompts, sub_train_labels, test_prompts, model=args.model, **hyperparams)
+                cal_test_logits = run_finetunning(
+                    sub_train_prompts, 
+                    test_prompts, 
+                    labels=test_config["labels"], 
+                    model=args.model, 
+                    random_state=seed+config["random_state"],
+                    test_batch_size=config["test_batch_size"],
+                    **hyperparams
+                )
                 np.save(os.path.join(root_save_path,str(config["id"]),f"test.finetuned.{n_samples}.npy"),cal_test_logits)
                 np.save(os.path.join(root_save_path,str(config["id"]),f"train.idx.{n_samples}.npy"),train_idx)
                 train_samples.set_description(desc=config["id"])
@@ -72,15 +87,13 @@ def main():
                 json.dump(config,f,indent=4)
 
 
-def run_finetunning(train_prompts, train_labels, test_prompts, model="gpt2", batch_size=32, epochs=3):
+def run_finetunning(train_prompts, test_prompts, labels, model="gpt2", random_state=0, test_batch_size=32, train_batch_size=32, epochs=3):
 
-    test_logits = torch.from_numpy(test_logits)
-    train_labels = torch.from_numpy(train_labels)
-
+    import pdb; pdb.set_trace()
     print("Loading base model to train...")
-    base_model = LanguageModel(base_model=model)
-    train_loader = PlainTextLoader(train_prompts, base_model.tokenizer, batch_size=batch_size)
-    val_loader = PlainTextLoader(train_prompts, base_model.tokenizer, batch_size=batch_size)
+    base_model = LanguageModel.from_model_name(model_name=model)
+    dataset = LanguageModelDataset(train_prompts, np.arange(len(train_prompts)), model_name=model, random_state=random_state)
+    train_loader = LanguageModelTextLoader(dataset, base_model.tokenizer, model_name=model, batch_size=train_batch_size)
     trainer = pl.Trainer(
         accelerator="gpu" if torch.cuda.is_available() else "cpu",
         devices=-1,
@@ -88,11 +101,12 @@ def run_finetunning(train_prompts, train_labels, test_prompts, model="gpt2", bat
         logger=False,
         max_epochs=epochs
     )
-    trainer.fit(base_model, train_loader, val_loader)
+    trainer.fit(base_model, train_loader)
 
     print("Predicting on test with finetuned model...")
-    model = LanguageModelClassifier.from_base_model(base_model, model_name=model)
-    test_loader = TextClassificationLoaderFromPrompts(test_prompts, -np.ones(len(test_prompts)), model.tokenizer)
+    model = LanguageModelClassifier.from_base_model(base_model.lm, model_name=model)
+    dataset = BasicContainer(test_prompts, -np.ones(len(test_prompts)), np.arange(len(test_prompts)))
+    test_loader = SequentialLoaderWithDataCollator(dataset, model.tokenizer, labels=labels, batch_size=test_batch_size)
     trainer = pl.Trainer(
         accelerator="gpu" if torch.cuda.is_available() else "cpu",
         devices=-1,

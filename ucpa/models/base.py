@@ -228,3 +228,76 @@ class LanguageModelClassifier(pl.LightningModule):
         return cls(base_model, tokenizer)
 
         
+class LanguageModel(pl.LightningModule):
+
+    def __init__(self, base_model, tokenizer):
+
+        if self.base_model.name_or_path in SUPPORTED_MODELS["decoder_only"]:
+            self._forward = self._decoder_only_forward
+        elif self.base_model.name_or_path in SUPPORTED_MODELS["encoder_decoder"]:
+            self._forward = self._encoder_decoder_forward
+        else:
+            raise ValueError(f"Architecture type of {self.base_model.name_or_path} model not supported.")
+        
+        self.lm = base_model
+        self.tokenizer = tokenizer
+    
+    def forward(self, batch_encoded_prompts):
+        import pdb; pdb.set_trace()
+        output = self._forward(batch_encoded_prompts)
+        return output
+        
+    def _decoder_only_forward(self, batch_encoded_prompts):
+        output = self.lm(
+            input_ids=batch_encoded_prompts["encoded_src_prompt"]["input_ids"],
+            attention_mask=batch_encoded_prompts["encoded_src_prompt"]["attention_mask"]
+        )
+        # Shift so that tokens < n predict n
+        shift_logits = output.logits[..., :-1, :].contiguous()
+        shift_labels = batch_encoded_prompts["encoded_tgt_prompt"]["input_ids"][..., 1:].contiguous()
+        return {
+            "logits": shift_logits,
+            "labels": shift_labels
+        }
+
+    def _encoder_decoder_forward(self, batch_encoded_prompts):
+        output = self.lm(
+            input_ids=batch_encoded_prompts["encoded_src_prompt"]["input_ids"],
+            attention_mask=batch_encoded_prompts["encoded_src_prompt"]["attention_mask"],
+            decoder_input_ids=batch_encoded_prompts["encoded_tgt_prompt"]["decoder_input_ids"],
+            decoder_attention_mask=batch_encoded_prompts["encoded_tgt_prompt"]["decoder_attention_mask"]
+        )
+        return {
+            "logits": output.logits,
+            "labels": batch_encoded_prompts["labels"]
+        }
+
+    def training_step(self, batch, batch_idx, dataloader_idx=0):
+        outputs = self(batch)
+        loss = F.cross_entropy(outputs["logits"].view(-1, outputs["logits"].size(-1)), outputs["labels"].view(-1))
+        return loss
+    
+    def configure_optimizers(self) -> Any:
+        return super().configure_optimizers()
+
+    def backward(self, loss: Tensor, *args: Any, **kwargs: Any) -> None:
+        return super().backward(loss, *args, **kwargs)
+    
+    @classmethod
+    def from_model_name(cls, model_name):
+
+        # Load pretrained tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
+
+        # Load pretrained model
+        if model_name in SUPPORTED_MODELS["decoder_only"]:
+            base_model = AutoModelForCausalLM.from_pretrained(model_name, local_files_only=True)
+            base_model.config.pad_token_id = base_model.config.eos_token_id
+            tokenizer.padding_side = "left"
+            tokenizer.pad_token = tokenizer.eos_token
+        elif model_name in SUPPORTED_MODELS["encoder_decoder"]:
+            base_model = AutoModelForSeq2SeqLM.from_pretrained(model_name, local_files_only=True)
+        else:
+            raise ValueError(f"Model {model_name} not supported.")
+        
+        return cls(base_model, tokenizer)

@@ -1,0 +1,18 @@
+[
+    {
+        "id": "tony_zhao_dbpedia_test_0_shot-tony_zhao_dbpedia_train_queries_with_prompt_0_shot-all_methods",
+        "train": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_dbpedia_train_queries_with_prompt_0_shot",
+        "test": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_dbpedia_test_0_shot",
+        "num_train_samples": {
+            "10": {"train_batch_size": 2, "epochs": 3}, 
+            "20": {"train_batch_size": 2, "epochs": 3},
+            "40": {"train_batch_size": 2, "epochs": 3},
+            "80": {"train_batch_size": 2, "epochs": 3},
+            "200": {"train_batch_size": 2, "epochs": 3},
+            "400": {"train_batch_size": 2, "epochs": 3},
+            "600": {"train_batch_size": 2, "epochs": 3}
+        },
+        "random_state": 0,
+        "test_batch_size": 32
+    }
+]

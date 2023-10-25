@@ -2,7 +2,7 @@
 import torch
 from torch.utils.data import DataLoader
 
-class DataCollator:
+class LMClassificationDataCollator:
 
     def __init__(self, tokenizer, template, labels):
         self.tokenizer = tokenizer
@@ -38,11 +38,48 @@ class SequentialLoaderWithDataCollator(DataLoader):
             dataset=dataset,
             batch_size=batch_size,
             shuffle=False,
-            collate_fn=DataCollator(
+            collate_fn=LMClassificationDataCollator(
                 tokenizer=tokenizer,
                 template=dataset.template,
                 labels=labels
             ),
             **kwargs
         )
- 
+
+class LMDataCollator:
+
+    def __init__(self, tokenizer):
+        self.tokenizer = tokenizer
+        self.max_query_tokens = tokenizer.max_len_single_sentence
+
+    def __call__(self, batch):
+
+        ids, srcs, tgts = [], [], []
+        for sample in batch:
+            ids.append(sample["text_id"])
+            srcs.append(sample["src_text"])
+            tgts.append(sample["tgt_text"])
+
+        return {
+            "original_id": ids,
+            "prompt": batch["original_text"],
+            "encoded_src_prompt": self.tokenizer(srcs, return_tensors="pt", padding=True, truncation=True, max_length=self.max_query_tokens),
+            "encoded_tgt_prompt": self.tokenizer(tgts, return_tensors="pt", padding=True, truncation=True, max_length=self.max_query_tokens),
+        }
+
+class LanguageModelTextLoader(DataLoader):
+
+    def __init__(self, dataset, tokenizer, batch_size=32, **kwargs):
+        self.tokenizer = tokenizer
+        kwargs.pop("collate_fn", None)
+        kwargs.pop("shuffle", None)
+        super().__init__(
+            dataset=dataset,
+            batch_size=batch_size,
+            shuffle=False,
+            collate_fn=LMDataCollator(
+                tokenizer=tokenizer,
+            ),
+            **kwargs
+        )
+
