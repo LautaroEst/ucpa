@@ -18,13 +18,14 @@ class LMClassificationDataCollator:
             ids.append(sample["original_id"])
             prompts.append(self.template.construct_prompt(self.tokenizer.convert_tokens_to_string(self.tokenizer.tokenize(sample["sentence"])[:self.max_query_tokens])))
             labels.append(sample["label"])
+        encoded_labels = {idx: {k: v.repeat(len(prompts),1) for k, v in self.tokenizer([f"{self.template.prefix_sample_separator}{label}"], return_tensors="pt", padding=True).items()} for idx, label in enumerate(self.labels)}
 
         return {
             "original_id": ids,
             "prompt": prompts,
             "encoded_prompt": self.tokenizer(prompts, return_tensors="pt", padding=True),
             "label": torch.tensor(labels),
-            "encoded_labels": {idx: {k: v.repeat(len(prompts),1) for k, v in self.tokenizer([f"{self.template.prefix_sample_separator}{label}"], return_tensors="pt", padding=True).items()} for idx, label in enumerate(self.labels)}
+            "encoded_labels": encoded_labels
         }
 
 class SequentialLoaderWithDataCollator(DataLoader):
@@ -54,15 +55,16 @@ class LMDataCollator:
 
     def __call__(self, batch):
 
-        ids, srcs, tgts = [], [], []
+        ids, prompts, srcs, tgts = [], [], [], []
         for sample in batch:
             ids.append(sample["text_id"])
+            prompts.append(sample["original_text"])
             srcs.append(sample["src_text"])
             tgts.append(sample["tgt_text"])
 
         return {
             "original_id": ids,
-            "prompt": batch["original_text"],
+            "prompt": prompts,
             "encoded_src_prompt": self.tokenizer(srcs, return_tensors="pt", padding=True, truncation=True, max_length=self.max_query_tokens),
             "encoded_tgt_prompt": self.tokenizer(tgts, return_tensors="pt", padding=True, truncation=True, max_length=self.max_query_tokens),
         }

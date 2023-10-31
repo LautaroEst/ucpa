@@ -205,6 +205,11 @@ class LanguageModelClassifier(pl.LightningModule):
 
         # Load pretrained tokenizer
         tokenizer = AutoTokenizer.from_pretrained(model_name, local_files_only=True)
+        if model_name in SUPPORTED_MODELS["decoder_only"]:
+            tokenizer.padding_side = "left"
+            tokenizer.pad_token = tokenizer.eos_token
+        else:
+            raise ValueError(f"Model {model_name} not supported.")
 
         return cls(base_model, tokenizer)
 
@@ -231,10 +236,11 @@ class LanguageModelClassifier(pl.LightningModule):
 class LanguageModel(pl.LightningModule):
 
     def __init__(self, base_model, tokenizer):
+        super().__init__()
 
-        if self.base_model.name_or_path in SUPPORTED_MODELS["decoder_only"]:
+        if base_model.name_or_path in SUPPORTED_MODELS["decoder_only"]:
             self._forward = self._decoder_only_forward
-        elif self.base_model.name_or_path in SUPPORTED_MODELS["encoder_decoder"]:
+        elif base_model.name_or_path in SUPPORTED_MODELS["encoder_decoder"]:
             self._forward = self._encoder_decoder_forward
         else:
             raise ValueError(f"Architecture type of {self.base_model.name_or_path} model not supported.")
@@ -243,7 +249,6 @@ class LanguageModel(pl.LightningModule):
         self.tokenizer = tokenizer
     
     def forward(self, batch_encoded_prompts):
-        import pdb; pdb.set_trace()
         output = self._forward(batch_encoded_prompts)
         return output
         

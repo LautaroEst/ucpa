@@ -74,6 +74,7 @@ def main():
                     test_prompts, 
                     labels=test_config["labels"], 
                     model=args.model, 
+                    test_config=test_config,
                     random_state=seed+config["random_state"],
                     test_batch_size=config["test_batch_size"],
                     **hyperparams
@@ -87,13 +88,12 @@ def main():
                 json.dump(config,f,indent=4)
 
 
-def run_finetunning(train_prompts, test_prompts, labels, model="gpt2", random_state=0, test_batch_size=32, train_batch_size=32, epochs=3):
+def run_finetunning(train_prompts, test_prompts, labels, model="gpt2", test_config=None, random_state=0, test_batch_size=32, train_batch_size=32, epochs=3):
 
-    import pdb; pdb.set_trace()
     print("Loading base model to train...")
-    base_model = LanguageModel.from_model_name(model_name=model)
-    dataset = LanguageModelDataset(train_prompts, np.arange(len(train_prompts)), model_name=model, random_state=random_state)
-    train_loader = LanguageModelTextLoader(dataset, base_model.tokenizer, model_name=model, batch_size=train_batch_size)
+    base_model = LanguageModel.from_model_name(model_name=model.replace("--","/"))
+    dataset = LanguageModelDataset(train_prompts, np.arange(len(train_prompts)), model_name=model.replace("--","/"), random_state=random_state)
+    train_loader = LanguageModelTextLoader(dataset, base_model.tokenizer, batch_size=train_batch_size)
     trainer = pl.Trainer(
         accelerator="gpu" if torch.cuda.is_available() else "cpu",
         devices=-1,
@@ -104,8 +104,9 @@ def run_finetunning(train_prompts, test_prompts, labels, model="gpt2", random_st
     trainer.fit(base_model, train_loader)
 
     print("Predicting on test with finetuned model...")
-    model = LanguageModelClassifier.from_base_model(base_model.lm, model_name=model)
+    model = LanguageModelClassifier.from_base_model(base_model.lm, model_name=model.replace("--","/"))
     dataset = BasicContainer(test_prompts, -np.ones(len(test_prompts)), np.arange(len(test_prompts)))
+    dataset.template = DummyTemplate(test_config)
     test_loader = SequentialLoaderWithDataCollator(dataset, model.tokenizer, labels=labels, batch_size=test_batch_size)
     trainer = pl.Trainer(
         accelerator="gpu" if torch.cuda.is_available() else "cpu",
@@ -115,7 +116,16 @@ def run_finetunning(train_prompts, test_prompts, labels, model="gpt2", random_st
     )
     predictions = trainer.predict(model, test_loader)
     _, _, cal_logits, _ = zip(*predictions)
+    cal_logits = np.vstack(cal_logits)
     return cal_logits
+
+class DummyTemplate:
+
+    def __init__(self, test_config):
+        self.prefix_sample_separator = test_config["template_args"]["prefix_sample_separator"]
+    
+    def construct_prompt(self, sentence):
+        return sentence
 
 
 if __name__ == "__main__":

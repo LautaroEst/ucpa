@@ -17,7 +17,7 @@ class BasicContainer(Dataset):
     
     def __getitem__(self, idx):
         return {
-            "original_id": self._data["original_ids"][idx],
+            "original_id": self._data["sentences_ids"][idx],
             "sentence": self._data["sentences"][idx], 
             "label": self._data["labels"][idx]
         }

@@ -1,8 +1,8 @@
 [
     {
         "id": "tony_zhao_dbpedia_test_0_shot-tony_zhao_dbpedia_train_queries_with_prompt_0_shot",
-        "train": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_dbpedia_train_queries_with_prompt_0_shot",
-        "test": "{root_directory}/results/predict_with_model/gpt2/{seed}/tony_zhao_dbpedia_test_0_shot",
+        "train": "{root_directory}/results/predict_with_model/meta-llama--Llama-2-7b-hf/{seed}/tony_zhao_dbpedia_train_queries_with_prompt_0_shot",
+        "test": "{root_directory}/results/predict_with_model/meta-llama--Llama-2-7b-hf/{seed}/tony_zhao_dbpedia_test_0_shot",
         "num_train_samples": {
             "10": {"train_batch_size": 2, "epochs": 3}, 
             "20": {"train_batch_size": 2, "epochs": 3},
@@ -13,6 +13,6 @@
             "600": {"train_batch_size": 2, "epochs": 3}
         },
         "random_state": 0,
-        "test_batch_size": 32
+        "test_batch_size": 2
     }
 ]
