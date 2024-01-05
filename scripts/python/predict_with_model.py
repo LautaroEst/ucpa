@@ -89,8 +89,10 @@ def run_model_on_dataset(model, dataset, labels, results_directory, batch_size =
     # Create loader and trainer to predict
     loader = SequentialLoaderWithDataCollator(dataset, model.tokenizer, labels, batch_size)
     trainer = pl.Trainer(
-        accelerator="gpu" if torch.cuda.is_available() else "cpu",
-        devices=-1,
+        # accelerator="gpu" if torch.cuda.is_available() else "cpu",
+        accelerator="cpu",
+        # devices=-1,
+        devices=1,
         enable_checkpointing=False, 
         logger=False
     )
