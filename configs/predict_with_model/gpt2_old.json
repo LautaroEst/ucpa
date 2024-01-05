@@ -1,0 +1,675 @@
+[
+    {
+        "id": "tony_zhao_trec_test_0_shot", 
+        "random_state": 0, 
+        "dataset": "tony_zhao_trec",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "simple_query_substitution", 
+            "prompt": "Classify the questions based on whether their answer type is a Number, Location, Person, Description, Entity, or Abbreviation.\n\nQuestion: {query}\nAnswer Type:",
+            "query_pattern": "{query}",
+            "prefix_sample_separator": " "
+        },
+        "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_trec_test_1_shot", 
+        "random_state": 1, 
+        "dataset": "tony_zhao_trec",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_trec", 
+                "split": "train", 
+                "n_shots": 1
+            },
+            "preface": "Classify the questions based on whether their answer type is a Number, Location, Person, Description, Entity, or Abbreviation.\n\n", 
+            "query_prefix": "Question:", 
+            "label_prefix": "Answer Type:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_trec_test_4_shot", 
+        "random_state": 2, 
+        "dataset": "tony_zhao_trec",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_trec", 
+                "split": "train", 
+                "n_shots": 4
+            },
+            "preface": "Classify the questions based on whether their answer type is a Number, Location, Person, Description, Entity, or Abbreviation.\n\n", 
+            "query_prefix": "Question:", 
+            "label_prefix": "Answer Type:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_trec_test_8_shot", 
+        "random_state": 3, 
+        "dataset": "tony_zhao_trec",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_trec", 
+                "split": "train", 
+                "n_shots": 8
+            },
+            "preface": "Classify the questions based on whether their answer type is a Number, Location, Person, Description, Entity, or Abbreviation.\n\n", 
+            "query_prefix": "Question:", 
+            "label_prefix": "Answer Type:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_trec_train_queries_with_prompt_0_shot",
+        "random_state": 0,
+        "dataset": "tony_zhao_trec",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "simple_query_substitution", 
+            "prompt": "Classify the questions based on whether their answer type is a Number, Location, Person, Description, Entity, or Abbreviation.\n\nQuestion: {query}\nAnswer Type:",
+            "query_pattern": "{query}",
+            "prefix_sample_separator": " "
+        },
+        "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_trec_train_queries_with_prompt_1_shot", 
+        "random_state": 1, 
+        "dataset": "tony_zhao_trec",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_trec", 
+                "split": "train", 
+                "n_shots": 1
+            },
+            "preface": "Classify the questions based on whether their answer type is a Number, Location, Person, Description, Entity, or Abbreviation.\n\n", 
+            "query_prefix": "Question:", 
+            "label_prefix": "Answer Type:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_trec_train_queries_with_prompt_4_shot", 
+        "random_state": 2, 
+        "dataset": "tony_zhao_trec",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_trec", 
+                "split": "train", 
+                "n_shots": 4
+            },
+            "preface": "Classify the questions based on whether their answer type is a Number, Location, Person, Description, Entity, or Abbreviation.\n\n", 
+            "query_prefix": "Question:", 
+            "label_prefix": "Answer Type:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_trec_train_queries_with_prompt_8_shot", 
+        "random_state": 3, 
+        "dataset": "tony_zhao_trec",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_trec", 
+                "split": "train", 
+                "n_shots": 8
+            },
+            "preface": "Classify the questions based on whether their answer type is a Number, Location, Person, Description, Entity, or Abbreviation.\n\n", 
+            "query_prefix": "Question:", 
+            "label_prefix": "Answer Type:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Number", "Location", "Person", "Description", "Entity", "Abbreviation"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_sst2_test_0_shot", 
+        "random_state": 0, 
+        "dataset": "tony_zhao_sst2",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "simple_query_substitution", 
+            "prompt": "Review: {query}\nSentiment:",
+            "query_pattern": "{query}",
+            "prefix_sample_separator": " "
+        },
+        "labels": ["Negative", "Positive"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_sst2_test_1_shot", 
+        "random_state": 1, 
+        "dataset": "tony_zhao_sst2",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_sst2", 
+                "split": "train", 
+                "n_shots": 1
+            },
+            "preface": "", 
+            "query_prefix": "Review:", 
+            "label_prefix": "Sentiment:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Negative", "Positive"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_sst2_test_4_shot", 
+        "random_state": 2, 
+        "dataset": "tony_zhao_sst2",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_sst2", 
+                "split": "train", 
+                "n_shots": 4
+            },
+            "preface": "", 
+            "query_prefix": "Review:", 
+            "label_prefix": "Sentiment:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Negative", "Positive"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_sst2_test_8_shot", 
+        "random_state": 3, 
+        "dataset": "tony_zhao_sst2",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_sst2", 
+                "split": "train", 
+                "n_shots": 8
+            },
+            "preface": "", 
+            "query_prefix": "Review:", 
+            "label_prefix": "Sentiment:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Negative", "Positive"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_sst2_train_queries_with_prompt_0_shot",
+        "random_state": 0,
+        "dataset": "tony_zhao_sst2",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "simple_query_substitution", 
+            "prompt": "Review: {query}\nSentiment:",
+            "query_pattern": "{query}",
+            "prefix_sample_separator": " "
+        },
+        "labels": ["Negative", "Positive"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_sst2_train_queries_with_prompt_1_shot", 
+        "random_state": 1, 
+        "dataset": "tony_zhao_sst2",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_sst2", 
+                "split": "train", 
+                "n_shots": 1
+            },
+            "preface": "", 
+            "query_prefix": "Review:", 
+            "label_prefix": "Sentiment:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Negative", "Positive"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_sst2_train_queries_with_prompt_4_shot", 
+        "random_state": 2, 
+        "dataset": "tony_zhao_sst2",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_sst2", 
+                "split": "train", 
+                "n_shots": 4
+            },
+            "preface": "", 
+            "query_prefix": "Review:", 
+            "label_prefix": "Sentiment:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Negative", "Positive"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_sst2_train_queries_with_prompt_8_shot", 
+        "random_state": 3, 
+        "dataset": "tony_zhao_sst2",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_sst2", 
+                "split": "train", 
+                "n_shots": 8
+            },
+            "preface": "", 
+            "query_prefix": "Review:", 
+            "label_prefix": "Sentiment:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Negative", "Positive"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_agnews_test_0_shot", 
+        "random_state": 0, 
+        "dataset": "tony_zhao_agnews",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "simple_query_substitution", 
+            "prompt": "Classify the news articles into the categories of World, Sports, Business, and Technology.\n\nArticle: {query}\nAnswer:",
+            "query_pattern": "{query}",
+            "prefix_sample_separator": " "
+        },
+        "labels": ["World", "Sports", "Business", "Technology"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_agnews_test_1_shot", 
+        "random_state": 1, 
+        "dataset": "tony_zhao_agnews",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_agnews", 
+                "split": "train", 
+                "n_shots": 1
+            },
+            "preface": "Classify the news articles into the categories of World, Sports, Business, and Technology.\n\n", 
+            "query_prefix": "Article:", 
+            "label_prefix": "Answer:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["World", "Sports", "Business", "Technology"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_agnews_test_4_shot", 
+        "random_state": 2, 
+        "dataset": "tony_zhao_agnews",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_agnews", 
+                "split": "train", 
+                "n_shots": 4
+            },
+            "preface": "Classify the news articles into the categories of World, Sports, Business, and Technology.\n\n", 
+            "query_prefix": "Article:", 
+            "label_prefix": "Answer:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["World", "Sports", "Business", "Technology"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_agnews_test_8_shot", 
+        "random_state": 3, 
+        "dataset": "tony_zhao_agnews",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_agnews", 
+                "split": "train", 
+                "n_shots": 8
+            },
+            "preface": "Classify the news articles into the categories of World, Sports, Business, and Technology.\n\n", 
+            "query_prefix": "Article:", 
+            "label_prefix": "Answer:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["World", "Sports", "Business", "Technology"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_agnews_train_queries_with_prompt_0_shot",
+        "random_state": 0,
+        "dataset": "tony_zhao_agnews",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "simple_query_substitution", 
+            "prompt": "Classify the news articles into the categories of World, Sports, Business, and Technology.\n\nArticle: {query}\nAnswer:",
+            "query_pattern": "{query}",
+            "prefix_sample_separator": " "
+        },
+        "labels": ["World", "Sports", "Business", "Technology"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_agnews_train_queries_with_prompt_1_shot", 
+        "random_state": 1, 
+        "dataset": "tony_zhao_agnews",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_agnews", 
+                "split": "train", 
+                "n_shots": 1
+            },
+            "preface": "Classify the news articles into the categories of World, Sports, Business, and Technology.\n\n", 
+            "query_prefix": "Article:", 
+            "label_prefix": "Answer:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["World", "Sports", "Business", "Technology"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_agnews_train_queries_with_prompt_4_shot", 
+        "random_state": 2, 
+        "dataset": "tony_zhao_agnews",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_agnews", 
+                "split": "train", 
+                "n_shots": 4
+            },
+            "preface": "Classify the news articles into the categories of World, Sports, Business, and Technology.\n\n", 
+            "query_prefix": "Article:", 
+            "label_prefix": "Answer:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["World", "Sports", "Business", "Technology"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_agnews_train_queries_with_prompt_8_shot", 
+        "random_state": 3, 
+        "dataset": "tony_zhao_agnews",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_agnews", 
+                "split": "train", 
+                "n_shots": 8
+            },
+            "preface": "Classify the news articles into the categories of World, Sports, Business, and Technology.\n\n", 
+            "query_prefix": "Article:", 
+            "label_prefix": "Answer:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["World", "Sports", "Business", "Technology"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_dbpedia_test_0_shot", 
+        "random_state": 0, 
+        "dataset": "tony_zhao_dbpedia",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "simple_query_substitution", 
+            "prompt": "Classify the documents based on whether they are about a Company, School, Artist, Athlete, Politician, Transportation, Building, Nature, Village, Animal, Plant, Album, Film, or Book.\n\nArticle: {query}\nAnswer:",
+            "query_pattern": "{query}",
+            "prefix_sample_separator": " "
+        },
+        "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_dbpedia_test_1_shot", 
+        "random_state": 1, 
+        "dataset": "tony_zhao_dbpedia",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_dbpedia", 
+                "split": "train", 
+                "n_shots": 1
+            },
+            "preface": "Classify the documents based on whether they are about a Company, School, Artist, Athlete, Politician, Transportation, Building, Nature, Village, Animal, Plant, Album, Film, or Book.\n\n", 
+            "query_prefix": "Article:", 
+            "label_prefix": "Answer:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_dbpedia_test_4_shot", 
+        "random_state": 2, 
+        "dataset": "tony_zhao_dbpedia",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_dbpedia", 
+                "split": "train", 
+                "n_shots": 4
+            },
+            "preface": "Classify the documents based on whether they are about a Company, School, Artist, Athlete, Politician, Transportation, Building, Nature, Village, Animal, Plant, Album, Film, or Book.\n\n", 
+            "query_prefix": "Article:", 
+            "label_prefix": "Answer:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_dbpedia_test_8_shot", 
+        "random_state": 3, 
+        "dataset": "tony_zhao_dbpedia",
+        "split": "test",
+        "num_samples": null,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_dbpedia", 
+                "split": "train", 
+                "n_shots": 8
+            },
+            "preface": "Classify the documents based on whether they are about a Company, School, Artist, Athlete, Politician, Transportation, Building, Nature, Village, Animal, Plant, Album, Film, or Book.\n\n", 
+            "query_prefix": "Article:", 
+            "label_prefix": "Answer:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_dbpedia_train_queries_with_prompt_0_shot",
+        "random_state": 0,
+        "dataset": "tony_zhao_dbpedia",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "simple_query_substitution", 
+            "prompt": "Classify the documents based on whether they are about a Company, School, Artist, Athlete, Politician, Transportation, Building, Nature, Village, Animal, Plant, Album, Film, or Book.\n\nArticle: {query}\nAnswer:",
+            "query_pattern": "{query}",
+            "prefix_sample_separator": " "
+        },
+        "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_dbpedia_train_queries_with_prompt_1_shot", 
+        "random_state": 1, 
+        "dataset": "tony_zhao_dbpedia",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_dbpedia", 
+                "split": "train", 
+                "n_shots": 1
+            },
+            "preface": "Classify the documents based on whether they are about a Company, School, Artist, Athlete, Politician, Transportation, Building, Nature, Village, Animal, Plant, Album, Film, or Book.\n\n", 
+            "query_prefix": "Article:", 
+            "label_prefix": "Answer:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_dbpedia_train_queries_with_prompt_4_shot", 
+        "random_state": 2, 
+        "dataset": "tony_zhao_dbpedia",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_dbpedia", 
+                "split": "train", 
+                "n_shots": 4
+            },
+            "preface": "Classify the documents based on whether they are about a Company, School, Artist, Athlete, Politician, Transportation, Building, Nature, Village, Animal, Plant, Album, Film, or Book.\n\n", 
+            "query_prefix": "Article:", 
+            "label_prefix": "Answer:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
+        "batch_size": 32
+    },
+    {
+        "id": "tony_zhao_dbpedia_train_queries_with_prompt_8_shot", 
+        "random_state": 3, 
+        "dataset": "tony_zhao_dbpedia",
+        "split": "train",
+        "num_samples": 600,
+        "template_args": {
+            "name": "preface_plus_shots", 
+            "sample_shots_from": {
+                "dataset": "tony_zhao_dbpedia", 
+                "split": "train", 
+                "n_shots": 8
+            },
+            "preface": "Classify the documents based on whether they are about a Company, School, Artist, Athlete, Politician, Transportation, Building, Nature, Village, Animal, Plant, Album, Film, or Book.\n\n", 
+            "query_prefix": "Article:", 
+            "label_prefix": "Answer:", 
+            "prefix_sample_separator": " ", 
+            "query_label_separator": "\n", 
+            "shot_separator": "\n\n"
+        },
+        "labels": ["Company", "School", "Artist", "Athlete", "Politician", "Transportation", "Building", "Nature", "Village", "Animal", "Plant", "Album", "Film", "Book"],
+        "batch_size": 32
+    }
+]
+

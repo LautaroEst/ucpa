@@ -198,6 +198,13 @@ class LanguageModelClassifier(pl.LightningModule):
         labels = batch["label"].cpu().numpy()
         ids = batch["original_id"]
         prompts = batch["prompt"]
+        import pandas as pd
+        # df = pd.DataFrame({"id": ids, "prompt": prompts, "logits": logits, "label": labels, "input_ids": batch["encoded_prompt"]["input_ids"].numpy(), "attention_mask": batch["encoded_prompt"]["attention_mask"].numpy()})
+        # print(df)
+        for lgt, lbl, id_, prompt, iids, att in zip(logits, labels, ids, prompts, batch["encoded_prompt"]["input_ids"], batch["encoded_prompt"]["attention_mask"]):
+            print(repr(id_) + "," + repr(prompt) + "," + repr(lgt.tolist()) + "," + repr(lbl.tolist()) + "," + repr(iids.tolist()) + "," + repr(att.tolist()) + "," + repr(batch["encoded_labels"]))
+        
+        asdf
         return ids, prompts, logits, labels
     
     @classmethod
